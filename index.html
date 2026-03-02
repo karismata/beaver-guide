@@ -751,6 +751,16 @@
                 });
             };
 
+            const handleCopyMemo = () => {
+                const tags = history.filter(h => h.tag && h.tag !== "상황 파악 완료").map(h => h.tag).join(" > ");
+                const copyText = `[상담 메모]\n매장명: ${memoData.storeName || '미입력'}\n사업자/연락처: ${memoData.bizNum || '미입력'}\n문의내용: ${memoData.issue || '미입력'}\n확인경로: ${tags || '없음'}`;
+                navigator.clipboard.writeText(copyText).then(() => {
+                    alert('메모 내용 전체가 복사되었습니다!\n원하는 곳에 붙여넣기(Ctrl+V) 하세요.');
+                }).catch(err => {
+                    alert('복사에 실패했습니다.');
+                });
+            };
+
             const exportToExcel = () => {
                 // ... same export ...
                 let csvContent = "\uFEFF분류,대응 지침\n";
@@ -846,9 +856,14 @@
                         {/* Right Panel - Sticky Memo */}
                         <div className="w-full lg:w-[360px] flex-shrink-0 animate-fade-in relative z-10">
                             <div className="sticky top-8 bg-white border-2 border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
-                                <h3 className="text-xl font-black text-slate-800 mb-5 flex items-center gap-2">
-                                    <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
-                                </h3>
+                                <div className="flex justify-between items-center mb-5">
+                                    <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                                        <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
+                                    </h3>
+                                    <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 hover:border-blue-600 active:scale-95">
+                                        <Icon name="copy" size={14} /> 복사
+                                    </button>
+                                </div>
 
                                 <div className="space-y-4 mb-6">
                                     <div>
