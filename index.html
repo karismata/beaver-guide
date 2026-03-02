@@ -402,7 +402,9 @@
 
         // --- INITIAL DATA ---
         const INITIAL_CONTENT = {
-            res_error: { title: "프로그램 오류 대응", icon: "alert-circle", type: "success", list: ["정확한 오류 메시지나 팝업 내용 확인\n어떤 화면에서 어떤 문구가 발생하는지 확인하세요.", "프로그램 강제 종료(Alt+F4) 및 재실행 안내\n재실행 후에도 동일한지 확인이 필요합니다.", "해결 안 될 시 원격 지원 도구 실행\n애니데스크(AnyDesk) 번호를 확인받으세요.", "로그인 오류 시 계정 정보 재확인\n비밀번호 대소문자 구분을 확인하세요."] },
+            res_error: { title: "기타 프로그램 오류 대응", icon: "alert-circle", type: "success", list: ["정확한 오류 메시지나 팝업 내용 확인\n어떤 화면에서 어떤 문구가 발생하는지 확인하세요.", "프로그램 강제 종료(Alt+F4) 및 재실행 안내\n재실행 후에도 동일한지 확인이 필요합니다.", "해결 안 될 시 원격 지원 도구 실행\n애니데스크(AnyDesk) 번호를 확인받으세요.", "로그인 오류 시 계정 정보 재확인\n비밀번호 대소문자 구분을 확인하세요."] },
+            res_err_run: { title: "프로그램 실행/로딩 오류", icon: "power", type: "success", list: ["PC/포스기 재부팅 후 재실행 안내\n일시적인 메모리 부족일 수 있습니다.", "백신 프로그램 오작동 확인\n실시간 감지를 잠시 끄고 실행해보세요.", "관리자 권한으로 실행\n우클릭 > 관리자 권한으로 실행해보세요."] },
+            res_err_pay: { title: "결제 중 통신/프로그램 오류", icon: "credit-card", type: "success", list: ["PG/밴사 통신 상태 확인\n인터넷 연결이 불안정할 때 발생할 수 있습니다.", "결제 모듈 업데이트 확인\n카드가 정상 결제됐는지 반드시 영수증을 확인하세요.", "임시로 현금 결제 유도 후 재접속\n고객 주문 처리가 시급할 때 안내하세요."] },
             res_hardware: { title: "장비/하드웨어 대응 (공통)", icon: "hard-drive", type: "success", list: ["전원 플러그 및 USB 케이블 연결 상태 확인\n간혹 발에 채여 빠지는 경우가 많습니다.", "프린터: 용지 잔량 및 걸림 확인\n빨간불이 들어와 있는지 확인하세요.", "카드리더기: IC칩 방향 확인 및 단말기 재부팅\n'MS 읽기' 문구가 뜨면 IC칩 방향이 반대인 것입니다.", "포스기 본체: 전원 버튼 조작 안내\n모니터 우측 하단이나 후면 전원 버튼을 확인하세요."] },
             res_hw_pos: { title: "포스기 / 키오스크 대응", icon: "monitor", type: "success", list: ["포스기 본체 전원 확인\n어댑터 연결 및 전원 버튼 상태를 확인하세요.", "터치 불량 시 윈도우 보정\n제어판에서 터치 보정을 진행하세요.", "네트워크 연결 확인\n랜선(LAN)이 제대로 꽂혀 있는지 핑 테스트를 진행하세요."] },
             res_hw_printer: { title: "프린터 (영수증/주방) 대응", icon: "printer", type: "success", list: ["프린터 에러등 확인\n용지가 끼었거나 덮개가 제대로 닫히지 않았는지 확인하세요.", "연결 케이블 재장착\n프린터 뒷면의 케이블을 뺐다가 다시 꽉 꽂아보세요."] },
@@ -431,10 +433,17 @@
             },
             category: {
                 id: "category", title: "3단계: 일반 문의 분류", icon: "message-square", description: "고객이 원하는 핵심 내용이 무엇인가요?", choices: [
-                    { id: "c7", label: "프로그램 오류", target: "res_error" },
+                    { id: "c7", label: "프로그램 오류", target: "error_category" },
                     { id: "c8", label: "장비 문제", target: "hardware_category" },
                     { id: "c9", label: "설정 / 기능 문의", target: "res_setting" },
                     { id: "c10", label: "결제 내역 확인", target: "res_payment" }
+                ]
+            },
+            error_category: {
+                id: "error_category", title: "프로그램 오류 분류", icon: "alert-circle", description: "어떤 종류의 오류가 발생했나요?", choices: [
+                    { id: "c_err1", label: "실행/로딩 오류", target: "res_err_run", icon: "power" },
+                    { id: "c_err2", label: "결제 관련 오류", target: "res_err_pay", icon: "credit-card" },
+                    { id: "c_err3", label: "기타 프로그램 오류", target: "res_error", icon: "alert-triangle" }
                 ]
             },
             hardware_category: {
@@ -564,11 +573,11 @@
             const [history, setHistory] = useState([]);
 
             const [steps, setSteps] = useState(() => {
-                const saved = localStorage.getItem('cs_guide_steps_v8');
+                const saved = localStorage.getItem('cs_guide_steps_v9');
                 return saved ? JSON.parse(saved) : INITIAL_STEPS;
             });
             const [contents, setContents] = useState(() => {
-                const saved = localStorage.getItem('cs_guide_contents_v8');
+                const saved = localStorage.getItem('cs_guide_contents_v9');
                 return saved ? JSON.parse(saved) : INITIAL_CONTENT;
             });
 
@@ -583,8 +592,8 @@
             ];
 
             useEffect(() => {
-                localStorage.setItem('cs_guide_steps_v8', JSON.stringify(steps));
-                localStorage.setItem('cs_guide_contents_v8', JSON.stringify(contents));
+                localStorage.setItem('cs_guide_steps_v9', JSON.stringify(steps));
+                localStorage.setItem('cs_guide_contents_v9', JSON.stringify(contents));
             }, [steps, contents]);
 
             const navigateTo = (nextStep) => {
