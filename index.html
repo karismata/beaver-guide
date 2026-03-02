@@ -754,11 +754,7 @@
             const handleCopyMemo = () => {
                 const tags = history.filter(h => h.tag && h.tag !== "상황 파악 완료").map(h => h.tag).join(" > ");
                 const copyText = `[상담 메모]\n매장명: ${memoData.storeName || '미입력'}\n사업자/연락처: ${memoData.bizNum || '미입력'}\n문의내용: ${memoData.issue || '미입력'}\n확인경로: ${tags || '없음'}`;
-                navigator.clipboard.writeText(copyText).then(() => {
-                    alert('메모 내용 전체가 복사되었습니다!\n원하는 곳에 붙여넣기(Ctrl+V) 하세요.');
-                }).catch(err => {
-                    alert('복사에 실패했습니다.');
-                });
+                navigator.clipboard.writeText(copyText).catch(err => console.error('복사 실패:', err));
             };
 
             const exportToExcel = () => {
