@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,19 +15,47 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
         /* Accordion Transition */
         .accordion-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out, padding 0.3s ease;
         }
+
         .accordion-open .accordion-content {
             max-height: 1200px;
             padding-top: 12px;
@@ -34,6 +63,7 @@
         }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
 
@@ -88,18 +118,26 @@
             </div>
         );
 
-        const ChoiceButton = ({ label, onClick, sublabel, icon, color = "blue" }) => (
-            <button
-                onClick={onClick}
-                className={`group relative flex items-center p-6 bg-white border-2 border-slate-200 rounded-3xl hover:border-${color}-500 hover:shadow-2xl hover:shadow-${color}-100 transition-all duration-300 text-left overflow-hidden`}
-            >
-                <div className="flex-grow">
-                    <span className={`block font-bold text-xl text-slate-800 group-hover:text-${color}-600 mb-1`}>{label}</span>
-                    {sublabel && <span className="text-sm text-slate-400 group-hover:text-slate-500">{sublabel}</span>}
-                </div>
-                {icon && <Icon name={icon} className={`text-slate-300 group-hover:text-${color}-500 transition-colors`} />}
-                <div className={`absolute bottom-0 left-0 h-1.5 w-0 bg-${color}-500 transition-all duration-300 group-hover:w-full`}></div>
-            </button>
+        const ChoiceButton = ({ label, onClick, sublabel, icon, color = "blue", editMode, onEdit, onDelete }) => (
+            <div className="relative group">
+                <button
+                    onClick={onClick}
+                    className={`w-full group relative flex items-center p-6 bg-white border-2 border-slate-200 rounded-[2rem] hover:border-${color}-500 hover:shadow-2xl hover:shadow-${color}-100 transition-all duration-300 text-left overflow-hidden`}
+                >
+                    <div className="flex-grow">
+                        <span className={`block font-bold text-xl text-slate-800 group-hover:text-${color}-600 mb-1`}>{label}</span>
+                        {sublabel && <span className="text-sm text-slate-400 group-hover:text-slate-500">{sublabel}</span>}
+                    </div>
+                    {icon && <Icon name={icon} className={`text-slate-300 group-hover:text-${color}-500 transition-colors`} />}
+                    <div className={`absolute bottom-0 left-0 h-1.5 w-0 bg-${color}-500 transition-all duration-300 group-hover:w-full`}></div>
+                </button>
+                {editMode && (
+                    <div className="absolute top-2 right-2 flex gap-1 z-10">
+                        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-2 bg-slate-100 text-blue-600 rounded-full hover:bg-blue-100 transition-colors shadow-sm"><Icon name="pencil" size={14} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 bg-slate-100 text-rose-600 rounded-full hover:bg-rose-100 transition-colors shadow-sm"><Icon name="trash-2" size={14} /></button>
+                    </div>
+                )}
+            </div>
         );
 
         // --- URL LINKIFY COMPONENT ---
@@ -151,7 +189,7 @@
             }, [data.list, searchTerm]);
 
             const toggleAccordion = (idx) => {
-                if (editingIdx !== null) return; 
+                if (editingIdx !== null) return;
                 setExpandedIdx(expandedIdx === idx ? null : idx);
             };
 
@@ -186,7 +224,7 @@
 
                         <div className="relative">
                             <Icon name="search" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input 
+                            <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -202,8 +240,8 @@
                             const isEditing = editingIdx === originalIdx;
 
                             return (
-                                <div 
-                                    key={originalIdx} 
+                                <div
+                                    key={originalIdx}
                                     className={`group bg-white rounded-2xl border transition-all ${expandedIdx === originalIdx ? 'border-blue-400 shadow-lg ring-1 ring-blue-100 accordion-open' : 'border-slate-200 hover:border-slate-300'}`}
                                 >
                                     <div className="w-full flex items-center p-4 text-left cursor-pointer" onClick={() => toggleAccordion(originalIdx)}>
@@ -215,25 +253,25 @@
                                         </span>
                                         <Icon name="chevron-down" size={18} className={`text-slate-300 transition-transform ${expandedIdx === originalIdx ? 'rotate-180' : ''}`} />
                                     </div>
-                                    
+
                                     <div className="accordion-content px-4 sm:px-12">
                                         <div className="border-t border-slate-50 pt-4">
                                             {isEditing ? (
                                                 <div className="flex flex-col gap-3 mb-4">
-                                                    <textarea 
+                                                    <textarea
                                                         value={editingText}
                                                         onChange={(e) => setEditingText(e.target.value)}
                                                         className="w-full p-4 bg-slate-50 border-2 border-blue-200 rounded-xl focus:outline-none font-medium text-slate-700 min-h-[120px]"
                                                         autoFocus
                                                     />
                                                     <div className="flex justify-end gap-2">
-                                                        <button 
+                                                        <button
                                                             onClick={cancelEdit}
                                                             className="px-4 py-2 bg-slate-100 text-slate-500 rounded-lg font-bold hover:bg-slate-200 transition-all text-sm"
                                                         >
                                                             취소
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             onClick={() => saveEdit(originalIdx)}
                                                             className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all text-sm"
                                                         >
@@ -249,19 +287,19 @@
                                         </div>
                                         {!isEditing && (
                                             <div className="flex justify-end gap-2 pb-4 flex-wrap mt-2">
-                                                <button 
+                                                <button
                                                     onClick={(e) => openActionModal(e, originalIdx, item)}
                                                     className="flex items-center gap-1.5 px-3 py-1.5 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-all text-sm font-bold"
                                                 >
                                                     <Icon name="folder-input" size={14} /> 이동/복사
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={(e) => startEditing(e, originalIdx, item)}
                                                     className="flex items-center gap-1.5 px-3 py-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all text-sm font-bold"
                                                 >
                                                     <Icon name="pencil" size={14} /> 수정하기
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); removeItem(stepKey, originalIdx); }}
                                                     className="flex items-center gap-1.5 px-3 py-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all text-sm font-bold"
                                                 >
@@ -281,15 +319,15 @@
                     </div>
 
                     <div className="relative mb-8">
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             value={newItem}
                             onChange={(e) => setNewItem(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && addItem(stepKey)}
                             placeholder="새로운 대응 지침 추가..."
                             className="w-full p-4 pr-16 bg-white border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:outline-none font-bold text-slate-700 placeholder:text-slate-300 shadow-sm"
                         />
-                        <button 
+                        <button
                             onClick={() => addItem(stepKey)}
                             className="absolute right-2 top-2 bottom-2 px-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg"
                         >
@@ -316,15 +354,15 @@
                                 <p className="text-sm text-slate-600 mb-6 truncate bg-slate-50 border border-slate-200 p-3 rounded-xl font-medium">
                                     {actionModal.itemText.split('\n')[0]}
                                 </p>
-                                
+
                                 <div className="flex gap-2 mb-6">
-                                    <button 
+                                    <button
                                         onClick={() => setActionType('copy')}
                                         className={`flex-1 py-3 rounded-xl font-bold transition-all border-2 flex items-center justify-center gap-2 ${actionType === 'copy' ? 'bg-blue-50 border-blue-500 text-blue-600' : 'border-slate-200 text-slate-400 hover:border-slate-300'}`}
                                     >
                                         <Icon name="copy" size={18} /> 복사하기
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setActionType('move')}
                                         className={`flex-1 py-3 rounded-xl font-bold transition-all border-2 flex items-center justify-center gap-2 ${actionType === 'move' ? 'bg-indigo-50 border-indigo-500 text-indigo-600' : 'border-slate-200 text-slate-400 hover:border-slate-300'}`}
                                     >
@@ -334,8 +372,8 @@
 
                                 <div className="mb-8">
                                     <label className="block text-sm font-bold text-slate-700 mb-2">대상 분류 선택</label>
-                                    <select 
-                                        value={selectedTarget} 
+                                    <select
+                                        value={selectedTarget}
                                         onChange={(e) => setSelectedTarget(e.target.value)}
                                         className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-blue-500 outline-none font-bold text-slate-700 bg-white"
                                     >
@@ -347,9 +385,9 @@
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <button onClick={() => setActionModal({isOpen: false})} className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition-colors">취소</button>
-                                    <button 
-                                        onClick={handleActionSubmit} 
+                                    <button onClick={() => setActionModal({ isOpen: false })} className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition-colors">취소</button>
+                                    <button
+                                        onClick={handleActionSubmit}
                                         className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-colors"
                                     >
                                         확인
@@ -365,7 +403,10 @@
         // --- INITIAL DATA ---
         const INITIAL_CONTENT = {
             res_error: { title: "프로그램 오류 대응", icon: "alert-circle", type: "success", list: ["정확한 오류 메시지나 팝업 내용 확인\n어떤 화면에서 어떤 문구가 발생하는지 확인하세요.", "프로그램 강제 종료(Alt+F4) 및 재실행 안내\n재실행 후에도 동일한지 확인이 필요합니다.", "해결 안 될 시 원격 지원 도구 실행\n애니데스크(AnyDesk) 번호를 확인받으세요.", "로그인 오류 시 계정 정보 재확인\n비밀번호 대소문자 구분을 확인하세요."] },
-            res_hardware: { title: "장비/하드웨어 대응", icon: "hard-drive", type: "success", list: ["전원 플러그 및 USB 케이블 연결 상태 확인\n간혹 발에 채여 빠지는 경우가 많습니다.", "프린터: 용지 잔량 및 걸림 확인\n빨간불이 들어와 있는지 확인하세요.", "카드리더기: IC칩 방향 확인 및 단말기 재부팅\n'MS 읽기' 문구가 뜨면 IC칩 방향이 반대인 것입니다.", "포스기 본체: 전원 버튼 조작 안내\n모니터 우측 하단이나 후면 전원 버튼을 확인하세요."] },
+            res_hardware: { title: "장비/하드웨어 대응 (공통)", icon: "hard-drive", type: "success", list: ["전원 플러그 및 USB 케이블 연결 상태 확인\n간혹 발에 채여 빠지는 경우가 많습니다.", "프린터: 용지 잔량 및 걸림 확인\n빨간불이 들어와 있는지 확인하세요.", "카드리더기: IC칩 방향 확인 및 단말기 재부팅\n'MS 읽기' 문구가 뜨면 IC칩 방향이 반대인 것입니다.", "포스기 본체: 전원 버튼 조작 안내\n모니터 우측 하단이나 후면 전원 버튼을 확인하세요."] },
+            res_hw_pos: { title: "포스기 / 키오스크 대응", icon: "monitor", type: "success", list: ["포스기 본체 전원 확인\n어댑터 연결 및 전원 버튼 상태를 확인하세요.", "터치 불량 시 윈도우 보정\n제어판에서 터치 보정을 진행하세요.", "네트워크 연결 확인\n랜선(LAN)이 제대로 꽂혀 있는지 핑 테스트를 진행하세요."] },
+            res_hw_printer: { title: "프린터 (영수증/주방) 대응", icon: "printer", type: "success", list: ["프린터 에러등 확인\n용지가 끼었거나 덮개가 제대로 닫히지 않았는지 확인하세요.", "연결 케이블 재장착\n프린터 뒷면의 케이블을 뺐다가 다시 꽉 꽂아보세요."] },
+            res_hw_card: { title: "카드 단말기 (리더기) 대응", icon: "credit-card", type: "success", list: ["단말기선 재연결 및 재부팅\n전원선을 10초 뒤 다시 꽂아보세요.", "펌웨어 업데이트 확인\n카드가 정상적으로 읽히지 않으면 최신 펌웨어인지 확인하세요."] },
             res_setting: { title: "설정 및 기능 안내", icon: "settings", type: "success", list: ["관리자 페이지(어드민) 접속 여부 확인\n로그인 정보를 모를 경우 본사 확인이 필요합니다.", "메뉴 수정/품절 설정 안내\n판매관리 > 메뉴관리에서 수정 가능합니다.", "테이블 배치 편집 모드 안내\n환경설정에서 테이블 위치를 드래그할 수 있습니다.", "관련 매뉴얼 PDF 전송\n카카오톡 채널을 통해 링크를 전송하세요."] },
             res_payment: { title: "결제 및 내역 확인", icon: "credit-card", type: "success", warning: "개인정보 보호를 위해 전체 카드번호는 묻지 마세요.", list: ["통합 어드민 시스템 접속\n결제 조회 메뉴를 활용하세요.", "카드번호 앞 8자리, 결제 일시 확인\n정확한 조회를 위해 필요합니다.", "승인번호 조회\n영수증이 있다면 승인번호가 가장 정확합니다.", "카드사 반영 기간 안내\n취소 시 영업일 기준 3-5일 소요됨을 알리세요."] },
             res_paik_1: { title: "[빽다방] 프로그램 오류", icon: "alert-circle", type: "success", list: ["비버/우노스 버전 확인\n빽다방은 매장별로 버전이 상이할 수 있습니다.", "키오스크 재시작\n키오스크 후면의 스위치를 껐다 켜주세요.", "주방 프린터 출력 설정 확인\n포스에서 주방 출력 여부가 체크되어 있는지 보세요."] },
@@ -377,24 +418,174 @@
             res_pay_service: { title: "결제 서비스 대응 (비버페이/바로페이/PG)", icon: "credit-card", type: "success", list: ["비버페이/바로페이 결제 누락 확인\n정산 페이지에서 해당 거래 건이 있는지 대조하세요.", "PG 결제 승인 여부 확인\n카드사 및 PG사 관리자 페이지에서 승인번호로 조회하세요.", "입금 예정 금액 확인\n정산 주기 및 수수료 제외 금액을 안내하세요.", "기타 결제 취소 요청 처리\n부분 취소 또는 전액 취소 가능 여부를 확인하세요."] }
         };
 
+        const INITIAL_STEPS = {
+            start: { id: "start", title: "1단계: 인사 및 경청", icon: "user", description: "\"반갑습니다. 고객센터 상담사 OOO입니다.\"\n고객의 불편 사항을 메모하며 끝까지 들어주세요.", choices: [{ id: "c1", label: "상황 파악 완료", sublabel: "문의 내용을 청취했습니다.", target: "program_check", icon: "chevron-right" }] },
+            program_check: {
+                id: "program_check", title: "2단계: 프로그램 확인", icon: "monitor", description: "고객이 현재 사용 중인 프로그램을 선택하세요.", choices: [
+                    { id: "c2", label: "비버 (Beaver)", target: "category", icon: "chevron-right" },
+                    { id: "c3", label: "우노스 (Unos)", target: "category", icon: "chevron-right" },
+                    { id: "c4", label: "빽다방 (Paik's)", target: "paik_category", color: "amber", icon: "coffee" },
+                    { id: "c5", label: "오더퀸 (OrderQueen)", target: "oq_category", color: "purple", icon: "chevron-right" },
+                    { id: "c6", label: "비버페이 / 바로페이 / PG", sublabel: "결제내역 확인 및 기타문의", target: "res_pay_service", color: "emerald", icon: "credit-card" }
+                ]
+            },
+            category: {
+                id: "category", title: "3단계: 일반 문의 분류", icon: "message-square", description: "고객이 원하는 핵심 내용이 무엇인가요?", choices: [
+                    { id: "c7", label: "프로그램 오류", target: "res_error" },
+                    { id: "c8", label: "장비 문제", target: "hardware_category" },
+                    { id: "c9", label: "설정 / 기능 문의", target: "res_setting" },
+                    { id: "c10", label: "결제 내역 확인", target: "res_payment" }
+                ]
+            },
+            hardware_category: {
+                id: "hardware_category", title: "장비 문제 분류", icon: "hard-drive", description: "어떤 장비에 문제가 발생했나요?", choices: [
+                    { id: "c11", label: "포스기 / 키오스크", target: "res_hw_pos", icon: "monitor" },
+                    { id: "c12", label: "프린터 (영수증/주방)", target: "res_hw_printer", icon: "printer" },
+                    { id: "c13", label: "카드 단말기 (리더기)", target: "res_hw_card", icon: "credit-card" },
+                    { id: "c14", label: "기타 일반 장비 대응", target: "res_hardware", icon: "tool" }
+                ]
+            },
+            paik_category: {
+                id: "paik_category", title: "빽다방 전용 대응", icon: "coffee", color: "amber", description: "점주님이 요청하신 항목을 선택하세요.", choices: [
+                    { id: "c15", label: "1. 프로그램 오류", color: "amber", target: "res_paik_1" },
+                    { id: "c16", label: "2. 장비 문제", color: "amber", target: "res_paik_2" },
+                    { id: "c17", label: "3. 설정 / 기능", color: "amber", target: "res_paik_3" },
+                    { id: "c18", label: "결제 내역 확인", color: "amber", target: "res_payment" }
+                ]
+            },
+            oq_category: {
+                id: "oq_category", title: "오더퀸 전용 대응", icon: "monitor", color: "purple", description: "점주님이 요청하신 항목을 선택하세요.", choices: [
+                    { id: "c19", label: "1. 프로그램 오류", color: "purple", target: "res_oq_1" },
+                    { id: "c20", label: "2. 장비 문제", color: "purple", target: "res_oq_2" },
+                    { id: "c21", label: "3. 설정 / 기능", color: "purple", target: "res_oq_3" },
+                    { id: "c22", label: "결제 내역 확인", color: "purple", target: "res_payment" }
+                ]
+            }
+        };
+
+        const ChoiceEditModal = ({ isOpen, onClose, choiceData, onSave, allTargets }) => {
+            const [formData, setFormData] = useState(choiceData || { label: '', sublabel: '', target: '', color: 'blue', icon: 'chevron-right' });
+            const [isNewTarget, setIsNewTarget] = useState(false);
+            const [newTargetType, setNewTargetType] = useState('Step'); // 'Step' or 'Result'
+            const [newTargetId, setNewTargetId] = useState('');
+            const [newTargetTitle, setNewTargetTitle] = useState('');
+
+            useEffect(() => {
+                setFormData(choiceData || { label: '', sublabel: '', target: '', color: 'blue', icon: 'chevron-right' });
+                setIsNewTarget(false);
+                setNewTargetId('');
+                setNewTargetTitle('');
+            }, [choiceData, isOpen]);
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl animate-fade-in text-left max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">
+                            <Icon name="edit" className="text-blue-500" /> 선택지 변경/추가
+                        </h3>
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">선택지 이름</label>
+                                <input value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} className="w-full p-3 border-2 border-slate-200 rounded-xl font-medium" placeholder="예: 카드 단말기 오류" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">보조 설명 (선택사항)</label>
+                                <input value={formData.sublabel} onChange={(e) => setFormData({ ...formData, sublabel: e.target.value })} className="w-full p-3 border-2 border-slate-200 rounded-xl text-sm" placeholder="예: 단말기 재부팅 안내 등" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">테마 & 아이콘 (Lucide)</label>
+                                <div className="flex gap-2">
+                                    <select value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} className="flex-1 p-3 border-2 border-slate-200 rounded-xl font-medium">
+                                        <option value="blue">Blue</option>
+                                        <option value="emerald">Emerald</option>
+                                        <option value="rose">Rose</option>
+                                        <option value="purple">Purple</option>
+                                        <option value="amber">Amber</option>
+                                        <option value="slate">Slate</option>
+                                    </select>
+                                    <input value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} placeholder="chevron-right" className="flex-1 p-3 border-2 border-slate-200 rounded-xl" />
+                                </div>
+                            </div>
+
+                            <div className="border-t pt-4">
+                                <label className="block text-sm font-bold text-slate-700 mb-2">버튼 클릭 시 이동할 화면</label>
+                                <div className="flex gap-2 mb-3">
+                                    <button onClick={() => setIsNewTarget(false)} className={`flex-1 py-2 text-sm font-bold rounded-lg border-2 ${!isNewTarget ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-slate-200 text-slate-400'}`}>기존 화면 연결</button>
+                                    <button onClick={() => setIsNewTarget(true)} className={`flex-1 py-2 text-sm font-bold rounded-lg border-2 ${isNewTarget ? 'border-emerald-500 text-emerald-600 bg-emerald-50' : 'border-slate-200 text-slate-400'}`}>새 화면 만들기</button>
+                                </div>
+
+                                {!isNewTarget ? (
+                                    <select value={formData.target} onChange={(e) => setFormData({ ...formData, target: e.target.value })} className="w-full p-3 border-2 border-slate-200 rounded-xl bg-slate-50 font-bold">
+                                        <option value="">목적지를 선택하세요</option>
+                                        {allTargets.map(t => <option key={t.id} value={t.id}>[{t.type === 'step' ? '선택형' : '지침형'}] {t.title}</option>)}
+                                    </select>
+                                ) : (
+                                    <div className="space-y-3 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 mt-2">
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                                                <input type="radio" name="nt" checked={newTargetType === 'Step'} onChange={() => setNewTargetType('Step')} className="w-4 h-4 cursor-pointer" /> [선택형] 중간 단계
+                                            </label>
+                                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                                                <input type="radio" name="nt" checked={newTargetType === 'Result'} onChange={() => setNewTargetType('Result')} className="w-4 h-4 cursor-pointer" /> [지침형] 최종 결과
+                                            </label>
+                                        </div>
+                                        <input value={newTargetId} onChange={e => setNewTargetId(e.target.value)} placeholder="영어 ID (예: my_new_step)" className="w-full p-3 border-2 border-white rounded-xl text-sm font-bold shadow-sm" />
+                                        <input value={newTargetTitle} onChange={e => setNewTargetTitle(e.target.value)} placeholder="새 화면의 제목을 입력하세요" className="w-full p-3 border-2 border-white rounded-xl text-sm font-bold shadow-sm" />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button onClick={onClose} className="flex-1 py-3.5 bg-slate-100 text-slate-500 rounded-xl font-bold hover:bg-slate-200 transition-colors">취소</button>
+                            <button onClick={() => {
+                                let finalTarget = formData.target;
+                                let createNew = null;
+                                if (isNewTarget) {
+                                    if (!newTargetId.trim() || !newTargetTitle.trim()) { alert("새 화면의 ID와 제목을 모두 입력해주세요!"); return; }
+                                    finalTarget = newTargetId.trim();
+                                    createNew = { id: finalTarget, type: newTargetType, title: newTargetTitle.trim() };
+                                }
+                                if (!finalTarget) { alert("연결할 화면을 지정해주세요!"); return; }
+                                onSave({ ...formData, target: finalTarget, id: formData.id || Date.now().toString() }, createNew);
+                            }} className="flex-1 py-3.5 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-colors shadow-blue-500/30">저장하기</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- MAIN APP COMPONENT ---
         const App = () => {
             const [activeStep, setActiveStep] = useState('start');
             const [history, setHistory] = useState([]);
+
+            const [steps, setSteps] = useState(() => {
+                const saved = localStorage.getItem('cs_guide_steps_v8');
+                return saved ? JSON.parse(saved) : INITIAL_STEPS;
+            });
             const [contents, setContents] = useState(() => {
-                const saved = localStorage.getItem('cs_guide_contents_v7');
+                const saved = localStorage.getItem('cs_guide_contents_v8');
                 return saved ? JSON.parse(saved) : INITIAL_CONTENT;
             });
-            const [newItem, setNewItem] = useState("");
 
-            const categories = Object.keys(contents).map(key => ({
-                id: key,
-                title: contents[key].title
-            }));
+            const [editMode, setEditMode] = useState(false);
+            const [newItem, setNewItem] = useState("");
+            const [modalState, setModalState] = useState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
+
+            const categories = Object.keys(contents).map(key => ({ id: key, title: contents[key].title }));
+            const allTargets = [
+                ...Object.keys(steps).map(k => ({ id: k, type: 'step', title: steps[k].title })),
+                ...Object.keys(contents).map(k => ({ id: k, type: 'result', title: contents[k].title }))
+            ];
 
             useEffect(() => {
-                localStorage.setItem('cs_guide_contents_v7', JSON.stringify(contents));
-            }, [contents]);
+                localStorage.setItem('cs_guide_steps_v8', JSON.stringify(steps));
+                localStorage.setItem('cs_guide_contents_v8', JSON.stringify(contents));
+            }, [steps, contents]);
 
             const navigateTo = (nextStep) => {
                 setHistory(prev => [...prev, activeStep]);
@@ -409,148 +600,140 @@
                 }
             };
 
-            const addItem = (stepKey) => {
-                if (!newItem.trim()) return;
-                setContents(prev => ({
-                    ...prev,
-                    [stepKey]: {
-                        ...prev[stepKey],
-                        list: [...prev[stepKey].list, newItem.trim()]
-                    }
-                }));
-                setNewItem("");
+            const openChoiceModal = (index = null) => {
+                if (index !== null) {
+                    setModalState({ isOpen: true, stepKey: activeStep, choiceIndex: index, data: steps[activeStep].choices[index] });
+                } else {
+                    setModalState({ isOpen: true, stepKey: activeStep, choiceIndex: null, data: null });
+                }
             };
 
+            const handleSaveChoice = (choiceData, createNewTarget) => {
+                if (createNewTarget) {
+                    if (createNewTarget.type === 'Step') {
+                        setSteps(prev => ({ ...prev, [createNewTarget.id]: { id: createNewTarget.id, title: createNewTarget.title, description: "새로 추가된 화면입니다.", icon: "star", choices: [] } }));
+                    } else {
+                        setContents(prev => ({ ...prev, [createNewTarget.id]: { title: createNewTarget.title, icon: "check-circle", type: "success", list: [] } }));
+                    }
+                }
+
+                setSteps(prev => {
+                    const newSteps = { ...prev };
+                    const choices = [...newSteps[modalState.stepKey].choices];
+                    if (modalState.choiceIndex !== null) {
+                        choices[modalState.choiceIndex] = choiceData;
+                    } else {
+                        choices.push(choiceData);
+                    }
+                    newSteps[modalState.stepKey].choices = choices;
+                    return newSteps;
+                });
+                setModalState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
+            };
+
+            const handleDeleteChoice = (index) => {
+                if (confirm("이 선택지를 삭제할까요?")) {
+                    setSteps(prev => {
+                        const newSteps = { ...prev };
+                        newSteps[activeStep].choices.splice(index, 1);
+                        return newSteps;
+                    });
+                }
+            };
+
+            // Existing list manage functions...
+            const addItem = (stepKey) => {
+                if (!newItem.trim()) return;
+                setContents(prev => ({ ...prev, [stepKey]: { ...prev[stepKey], list: [...prev[stepKey].list, newItem.trim()] } }));
+                setNewItem("");
+            };
             const removeItem = (stepKey, index) => {
                 setContents(prev => {
                     const newList = [...prev[stepKey].list];
                     newList.splice(index, 1);
-                    return {
-                        ...prev,
-                        [stepKey]: { ...prev[stepKey], list: newList }
-                    };
+                    return { ...prev, [stepKey]: { ...prev[stepKey], list: newList } };
                 });
             };
-
             const updateItem = (stepKey, index, newText) => {
                 setContents(prev => {
                     const newList = [...prev[stepKey].list];
                     newList[index] = newText;
-                    return {
-                        ...prev,
-                        [stepKey]: { ...prev[stepKey], list: newList }
-                    };
+                    return { ...prev, [stepKey]: { ...prev[stepKey], list: newList } };
                 });
             };
-
             const moveOrCopyItem = (sourceKey, targetKey, index, actionType) => {
                 setContents(prev => {
                     const newSourceList = [...prev[sourceKey].list];
                     const itemText = newSourceList[index];
-                    
-                    if (actionType === 'move') {
-                        newSourceList.splice(index, 1);
-                    }
-                    
-                    const newTargetList = [...prev[targetKey].list];
-                    newTargetList.push(itemText);
-
-                    return {
-                        ...prev,
-                        [sourceKey]: { ...prev[sourceKey], list: newSourceList },
-                        [targetKey]: { ...prev[targetKey], list: newTargetList }
-                    };
+                    if (actionType === 'move') newSourceList.splice(index, 1);
+                    const newTargetList = [...prev[targetKey].list, itemText];
+                    return { ...prev, [sourceKey]: { ...prev[sourceKey], list: newSourceList }, [targetKey]: { ...prev[targetKey], list: newTargetList } };
                 });
             };
 
             const exportToExcel = () => {
-                let csvContent = "\uFEFF"; // BOM for Excel UTF-8
-                csvContent += "분류,대응 지침\n";
-
+                // ... same export ...
+                let csvContent = "\uFEFF분류,대응 지침\n";
                 Object.keys(contents).forEach(key => {
-                    const section = contents[key];
-                    section.list.forEach(item => {
-                        const escapedItem = item.replace(/"/g, '""');
-                        csvContent += `"${section.title}","${escapedItem}"\n`;
-                    });
+                    contents[key].list.forEach(item => { csvContent += `"${contents[key].title}","${item.replace(/"/g, '""')}"\n`; });
                 });
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
-                link.setAttribute("href", url);
+                link.setAttribute("href", URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })));
                 link.setAttribute("download", "비버웍스_고객상담_대응지침.csv");
                 document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
             };
 
             return (
                 <div className="min-h-screen py-12 px-4 flex flex-col items-center max-w-4xl mx-auto">
-                    <header className="mb-16 text-center animate-fade-in">
-                        <div className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-full text-xs font-black tracking-widest uppercase mb-6 shadow-xl shadow-blue-200">
+                    {/* 공통 헤더 */}
+                    <header className="mb-14 text-center animate-fade-in relative w-full">
+                        <div className="absolute right-0 top-0">
+                            <button onClick={() => setEditMode(!editMode)} className={`px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg transition-all ${editMode ? 'bg-indigo-600 text-white shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-200'}`}>
+                                <Icon name={editMode ? 'check' : 'edit-3'} size={16} /> {editMode ? '편집 모드 완료' : '화면 편집 켜기'}
+                            </button>
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-full text-xs font-black tracking-widest uppercase mb-6 shadow-xl shadow-blue-200 mt-2">
                             <Icon name="headset" size={14} /> Technical Support Team
                         </div>
                         <h1 className="text-5xl font-black text-slate-900 mb-4 tracking-tighter italic">RESPONSE <span className="text-blue-600">GUIDE</span></h1>
-                        <p className="text-slate-400 font-bold text-lg">비버웍스 고객상담센터 스마트 순서도</p>
+                        <p className="text-slate-400 font-bold text-lg">상담 및 대응 동적 시나리오 에디터</p>
                     </header>
 
                     <div className="w-full flex justify-center flex-grow">
-                        {activeStep === 'start' && (
-                            <Step title="1단계: 인사 및 경청" icon="user" description={`"반갑습니다. 고객센터 상담사 OOO입니다."\n고객의 불편 사항을 메모하며 끝까지 들어주세요.`}>
-                                <ChoiceButton label="상황 파악 완료" sublabel="문의 내용을 청취했습니다." onClick={() => navigateTo('program_check')} icon="chevron-right" />
-                            </Step>
-                        )}
-
-                        {activeStep === 'program_check' && (
-                            <Step title="2단계: 프로그램 확인" icon="monitor" description="고객이 현재 사용 중인 프로그램을 선택하세요." onBack={goBack}>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-3xl">
-                                    <ChoiceButton label="비버 (Beaver)" onClick={() => navigateTo('category')} icon="chevron-right" />
-                                    <ChoiceButton label="우노스 (Unos)" onClick={() => navigateTo('category')} icon="chevron-right" />
-                                    <ChoiceButton label="빽다방 (Paik's)" onClick={() => navigateTo('paik_category')} color="amber" icon="coffee" />
-                                    <ChoiceButton label="오더퀸 (OrderQueen)" onClick={() => navigateTo('oq_category')} color="purple" icon="chevron-right" />
-                                    <ChoiceButton label="비버페이 / 바로페이 / PG" sublabel="결제내역 확인 및 기타문의" onClick={() => navigateTo('res_pay_service')} color="emerald" icon="credit-card" />
+                        {steps[activeStep] ? (
+                            <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined}>
+                                <div className={`grid grid-cols-1 ${steps[activeStep].choices.length > 3 ? 'sm:grid-cols-2' : ''} gap-4 w-full max-w-3xl`}>
+                                    {steps[activeStep].choices.map((choice, idx) => (
+                                        <ChoiceButton
+                                            key={choice.id}
+                                            label={choice.label}
+                                            sublabel={choice.sublabel}
+                                            icon={choice.icon}
+                                            color={choice.color || "blue"}
+                                            onClick={() => {
+                                                if (editMode) {
+                                                    openChoiceModal(idx);
+                                                } else {
+                                                    navigateTo(choice.target);
+                                                }
+                                            }}
+                                            editMode={editMode}
+                                            onEdit={() => openChoiceModal(idx)}
+                                            onDelete={() => handleDeleteChoice(idx)}
+                                        />
+                                    ))}
+                                    {editMode && (
+                                        <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
+                                            <Icon name="plus" size={24} /> <span>선택지 추가하기</span>
+                                        </button>
+                                    )}
                                 </div>
                             </Step>
-                        )}
-
-                        {activeStep === 'category' && (
-                            <Step title="3단계: 일반 문의 분류" icon="message-square" description="고객이 원하는 핵심 내용이 무엇인가요?" onBack={goBack}>
-                                <div className="grid grid-cols-1 gap-3">
-                                    <ChoiceButton label="프로그램 오류" onClick={() => navigateTo('res_error')} />
-                                    <ChoiceButton label="장비 문제" onClick={() => navigateTo('res_hardware')} />
-                                    <ChoiceButton label="설정 / 기능 문의" onClick={() => navigateTo('res_setting')} />
-                                    <ChoiceButton label="결제 내역 확인" onClick={() => navigateTo('res_payment')} />
-                                </div>
-                            </Step>
-                        )}
-
-                        {activeStep === 'paik_category' && (
-                            <Step title="빽다방 전용 대응" icon="coffee" color="amber" description="점주님이 요청하신 항목을 선택하세요." onBack={goBack}>
-                                <div className="grid grid-cols-1 gap-3">
-                                    <ChoiceButton label="1. 프로그램 오류" color="amber" onClick={() => navigateTo('res_paik_1')} />
-                                    <ChoiceButton label="2. 장비 문제" color="amber" onClick={() => navigateTo('res_paik_2')} />
-                                    <ChoiceButton label="3. 설정 / 기능" color="amber" onClick={() => navigateTo('res_paik_3')} />
-                                    <ChoiceButton label="결제 내역 확인" color="amber" onClick={() => navigateTo('res_payment')} />
-                                </div>
-                            </Step>
-                        )}
-
-                        {activeStep === 'oq_category' && (
-                            <Step title="오더퀸 전용 대응" icon="monitor" color="purple" description="점주님이 요청하신 항목을 선택하세요." onBack={goBack}>
-                                <div className="grid grid-cols-1 gap-3">
-                                    <ChoiceButton label="1. 프로그램 오류" color="purple" onClick={() => navigateTo('res_oq_1')} />
-                                    <ChoiceButton label="2. 장비 문제" color="purple" onClick={() => navigateTo('res_oq_2')} />
-                                    <ChoiceButton label="3. 설정 / 기능" color="purple" onClick={() => navigateTo('res_oq_3')} />
-                                    <ChoiceButton label="결제 내역 확인" color="purple" onClick={() => navigateTo('res_payment')} />
-                                </div>
-                            </Step>
-                        )}
-
-                        {contents[activeStep] && (
-                            <ResultCard 
-                                stepKey={activeStep} 
-                                data={contents[activeStep]} 
+                        ) : contents[activeStep] ? (
+                            <ResultCard
+                                stepKey={activeStep}
+                                data={contents[activeStep]}
                                 categories={categories}
                                 newItem={newItem}
                                 setNewItem={setNewItem}
@@ -561,6 +744,13 @@
                                 onReset={() => { setHistory([]); setActiveStep('start'); }}
                                 onBack={goBack}
                             />
+                        ) : (
+                            <div className="text-center py-20">
+                                <Icon name="alert-triangle" size={48} className="mx-auto text-rose-500 mb-4" />
+                                <h2 className="text-2xl font-bold text-slate-800">오류가 발생했습니다</h2>
+                                <p className="text-slate-500 mt-2">해당 화면(ID: {activeStep})을 찾을 수 없습니다.</p>
+                                <button onClick={goBack} className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">뒤로가기</button>
+                            </div>
                         )}
                     </div>
 
@@ -568,7 +758,7 @@
                         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                             <div className="flex items-center gap-4 text-slate-400 font-bold text-sm">
                                 <Icon name="info" size={16} />
-                                <span>작성/수정된 내용은 브라우저에 자동 저장됩니다.</span>
+                                <span>장비별 하위 분류 및 모든 항목 편집 기능 장착 완료</span>
                             </div>
                             <div className="flex gap-4">
                                 <button onClick={exportToExcel} className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 transition-all text-sm shadow-md active:scale-95">
@@ -577,6 +767,14 @@
                             </div>
                         </div>
                     </footer>
+
+                    <ChoiceEditModal
+                        isOpen={modalState.isOpen}
+                        onClose={() => setModalState({ isOpen: false, stepKey: null, choiceIndex: null, data: null })}
+                        choiceData={modalState.data}
+                        onSave={handleSaveChoice}
+                        allTargets={allTargets}
+                    />
                 </div>
             );
         };
@@ -585,4 +783,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>
