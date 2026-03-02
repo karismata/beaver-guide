@@ -575,10 +575,15 @@
             const [history, setHistory] = useState([]);
             const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', issue: '' });
 
-            // Supabase State
+            // Supabase State (Hardcoded zero-config setup)
             const [sbConfig, setSbConfig] = useState(() => {
                 const saved = localStorage.getItem('cs_guide_sb_config');
-                return saved ? JSON.parse(saved) : { url: '', key: '' };
+                // 한서치 Supabase 정보가 기본값으로 셋팅되도록 변경
+                if (saved) return JSON.parse(saved);
+                return {
+                    url: 'https://trtpgahsnuddenmxuazq.supabase.co',
+                    key: 'sb_publishable_N_NBrRMNfUDwfCodR-nZ6g_KCFEZiw1'
+                };
             });
             const [isSbModalOpen, setIsSbModalOpen] = useState(false);
             const [isLoadingDb, setIsLoadingDb] = useState(false);
@@ -615,8 +620,8 @@
             }, [steps, contents]);
 
             // Database Sync Logic
-            const loadFromDB = async () => {
-                if (!supabase) return alert('먼저 Supabase 연결 설정을 완료해주세요.');
+            const loadFromDB = async (silent = false) => {
+                if (!supabase) return silent ? null : alert('먼저 Supabase 연결 설정을 완료해주세요.');
                 setIsLoadingDb(true);
                 try {
                     const { data, error } = await supabase.from('cs_guide_data').select('*');
@@ -629,14 +634,21 @@
                         });
                         if (Object.keys(dbSteps).length > 0) setSteps(dbSteps);
                         if (Object.keys(dbContents).length > 0) setContents(dbContents);
-                        alert('DB에서 최신 가이드를 성공적으로 불러왔습니다!');
+                        if (!silent) alert('DB에서 최신 가이드를 성공적으로 불러왔습니다!');
                     } else {
-                        alert('DB에 저장된 데이터가 없습니다.');
+                        if (!silent) alert('DB에 저장된 데이터가 없습니다.');
                     }
                 } catch (err) {
-                    console.error(err); alert('불러오기 실패: ' + err.message);
+                    console.error(err); if (!silent) alert('불러오기 실패: ' + err.message);
                 } finally { setIsLoadingDb(false); }
             };
+
+            // 초기 접속 시 DB에서 자동으로 정보 불러오기
+            useEffect(() => {
+                if (supabase) {
+                    loadFromDB(true);
+                }
+            }, [supabase]);
 
             const deployToDB = async () => {
                 if (!supabase) return alert('먼저 Supabase 연결 설정을 완료해주세요.');
