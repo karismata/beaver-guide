@@ -421,7 +421,7 @@
         };
 
         const INITIAL_STEPS = {
-            start: { id: "start", title: "1단계: 인사 및 경청", icon: "user", description: "\"반갑습니다. 고객센터 상담사 OOO입니다.\"\n고객의 불편 사항을 메모하며 끝까지 들어주세요.", choices: [{ id: "c1", label: "상황 파악 완료", sublabel: "문의 내용을 청취했습니다.", target: "program_check", icon: "chevron-right" }] },
+            start: { id: "start", title: "1단계: 인사 및 경청", icon: "user", description: "\"안녕하세요. 비버매장연구소 입니다.\"\n고객의 불편 사항을 메모하며 끝까지 들어주세요.", choices: [{ id: "c1", label: "상황 파악 완료", sublabel: "문의 내용을 청취했습니다.", target: "program_check", icon: "chevron-right" }] },
             program_check: {
                 id: "program_check", title: "2단계: 프로그램 확인", icon: "monitor", description: "고객이 현재 사용 중인 프로그램을 선택하세요.", choices: [
                     { id: "c2", label: "비버 (Beaver)", target: "category", icon: "chevron-right" },
@@ -571,6 +571,7 @@
         const App = () => {
             const [activeStep, setActiveStep] = useState('start');
             const [history, setHistory] = useState([]);
+            const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', issue: '' });
 
             const [steps, setSteps] = useState(() => {
                 const saved = localStorage.getItem('cs_guide_steps_v9');
@@ -596,8 +597,8 @@
                 localStorage.setItem('cs_guide_contents_v9', JSON.stringify(contents));
             }, [steps, contents]);
 
-            const navigateTo = (nextStep) => {
-                setHistory(prev => [...prev, activeStep]);
+            const navigateTo = (nextStep, choiceLabel) => {
+                setHistory(prev => [...prev, { step: activeStep, tag: choiceLabel }]);
                 setActiveStep(nextStep);
             };
 
@@ -605,7 +606,7 @@
                 if (history.length > 0) {
                     const prevStep = history[history.length - 1];
                     setHistory(prev => prev.slice(0, -1));
-                    setActiveStep(prevStep);
+                    setActiveStep(prevStep.step);
                 }
             };
 
@@ -694,11 +695,11 @@
             };
 
             return (
-                <div className="min-h-screen py-12 px-4 flex flex-col items-center max-w-4xl mx-auto">
+                <div className="min-h-screen py-10 px-4 flex flex-col items-center max-w-[1200px] mx-auto">
                     {/* 공통 헤더 */}
                     <header className="mb-14 text-center animate-fade-in relative w-full">
                         <div className="absolute right-0 top-0">
-                            <button onClick={() => setEditMode(!editMode)} className={`px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg transition-all ${editMode ? 'bg-indigo-600 text-white shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-200'}`}>
+                            <button onClick={() => setEditMode(!editMode)} className={`px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg transition-all ${editMode ? 'bg-indigo-600 text-white shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-blue-400'}`}>
                                 <Icon name={editMode ? 'check' : 'edit-3'} size={16} /> {editMode ? '편집 모드 완료' : '화면 편집 켜기'}
                             </button>
                         </div>
@@ -706,61 +707,108 @@
                             <Icon name="headset" size={14} /> Technical Support Team
                         </div>
                         <h1 className="text-5xl font-black text-slate-900 mb-4 tracking-tighter italic">RESPONSE <span className="text-blue-600">GUIDE</span></h1>
-                        <p className="text-slate-400 font-bold text-lg">상담 및 대응 동적 시나리오 에디터</p>
+                        <p className="text-slate-400 font-bold text-lg">고객상담 스마트 가이드 & 메모 보드</p>
                     </header>
 
-                    <div className="w-full flex justify-center flex-grow">
-                        {steps[activeStep] ? (
-                            <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined}>
-                                <div className={`grid grid-cols-1 ${steps[activeStep].choices.length > 3 ? 'sm:grid-cols-2' : ''} gap-4 w-full max-w-3xl`}>
-                                    {steps[activeStep].choices.map((choice, idx) => (
-                                        <ChoiceButton
-                                            key={choice.id}
-                                            label={choice.label}
-                                            sublabel={choice.sublabel}
-                                            icon={choice.icon}
-                                            color={choice.color || "blue"}
-                                            onClick={() => {
-                                                if (editMode) {
-                                                    openChoiceModal(idx);
-                                                } else {
-                                                    navigateTo(choice.target);
-                                                }
-                                            }}
-                                            editMode={editMode}
-                                            onEdit={() => openChoiceModal(idx)}
-                                            onDelete={() => handleDeleteChoice(idx)}
-                                        />
-                                    ))}
-                                    {editMode && (
-                                        <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
-                                            <Icon name="plus" size={24} /> <span>선택지 추가하기</span>
-                                        </button>
-                                    )}
+                    <div className="w-full flex flex-col lg:flex-row gap-8 items-start justify-center flex-grow">
+                        {/* Main Content Area */}
+                        <div className="w-full flex-1 flex justify-center min-w-0">
+                            {steps[activeStep] ? (
+                                <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined}>
+                                    <div className={`grid grid-cols-1 ${steps[activeStep].choices.length > 3 ? 'sm:grid-cols-2' : ''} gap-4 w-full max-w-3xl`}>
+                                        {steps[activeStep].choices.map((choice, idx) => (
+                                            <ChoiceButton
+                                                key={choice.id}
+                                                label={choice.label}
+                                                sublabel={choice.sublabel}
+                                                icon={choice.icon}
+                                                color={choice.color || "blue"}
+                                                onClick={() => {
+                                                    if (editMode) {
+                                                        openChoiceModal(idx);
+                                                    } else {
+                                                        navigateTo(choice.target, choice.label);
+                                                    }
+                                                }}
+                                                editMode={editMode}
+                                                onEdit={() => openChoiceModal(idx)}
+                                                onDelete={() => handleDeleteChoice(idx)}
+                                            />
+                                        ))}
+                                        {editMode && (
+                                            <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
+                                                <Icon name="plus" size={24} /> <span>선택지 추가하기</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </Step>
+                            ) : contents[activeStep] ? (
+                                <ResultCard
+                                    stepKey={activeStep}
+                                    data={contents[activeStep]}
+                                    categories={categories}
+                                    newItem={newItem}
+                                    setNewItem={setNewItem}
+                                    addItem={addItem}
+                                    removeItem={removeItem}
+                                    updateItem={updateItem}
+                                    moveOrCopyItem={moveOrCopyItem}
+                                    onReset={() => { setMemoData({ storeName: '', bizNum: '', issue: '' }); setHistory([]); setActiveStep('start'); }}
+                                    onBack={goBack}
+                                />
+                            ) : (
+                                <div className="text-center py-20">
+                                    <Icon name="alert-triangle" size={48} className="mx-auto text-rose-500 mb-4" />
+                                    <h2 className="text-2xl font-bold text-slate-800">오류가 발생했습니다</h2>
+                                    <p className="text-slate-500 mt-2">해당 화면(ID: {activeStep})을 찾을 수 없습니다.</p>
+                                    <button onClick={goBack} className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">뒤로가기</button>
                                 </div>
-                            </Step>
-                        ) : contents[activeStep] ? (
-                            <ResultCard
-                                stepKey={activeStep}
-                                data={contents[activeStep]}
-                                categories={categories}
-                                newItem={newItem}
-                                setNewItem={setNewItem}
-                                addItem={addItem}
-                                removeItem={removeItem}
-                                updateItem={updateItem}
-                                moveOrCopyItem={moveOrCopyItem}
-                                onReset={() => { setHistory([]); setActiveStep('start'); }}
-                                onBack={goBack}
-                            />
-                        ) : (
-                            <div className="text-center py-20">
-                                <Icon name="alert-triangle" size={48} className="mx-auto text-rose-500 mb-4" />
-                                <h2 className="text-2xl font-bold text-slate-800">오류가 발생했습니다</h2>
-                                <p className="text-slate-500 mt-2">해당 화면(ID: {activeStep})을 찾을 수 없습니다.</p>
-                                <button onClick={goBack} className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">뒤로가기</button>
+                            )}
+                        </div>
+
+                        {/* Right Panel - Sticky Memo */}
+                        <div className="w-full lg:w-[360px] flex-shrink-0 animate-fade-in relative z-10">
+                            <div className="sticky top-8 bg-white border-2 border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
+                                <h3 className="text-xl font-black text-slate-800 mb-5 flex items-center gap-2">
+                                    <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
+                                </h3>
+
+                                <div className="space-y-4 mb-6">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">매장명</label>
+                                        <input value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">사업자번호 / 연락처</label>
+                                        <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 123-45-67890" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">고객 문의내용</label>
+                                        <textarea value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl h-28 resize-none text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-slate-100 pt-5">
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">선택한 분류 경로</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {history.filter(h => h.tag && h.tag !== "상황 파악 완료").map((h, i) => (
+                                            <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100 flex items-center gap-1 shadow-sm"><Icon name="check" size={12} /> {h.tag}</span>
+                                        ))}
+                                        {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 mt-1">아직 선택된 분류가 없습니다.</span>}
+                                    </div>
+                                </div>
+
+                                <button onClick={() => {
+                                    if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
+                                        setMemoData({ storeName: '', bizNum: '', issue: '' });
+                                        setHistory([]);
+                                        setActiveStep('start');
+                                    }
+                                }} className="w-full mt-6 py-3.5 bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 flex items-center justify-center gap-2 group shadow-sm">
+                                    <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
+                                </button>
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     <footer className="mt-24 w-full border-t border-slate-200 pt-10">
