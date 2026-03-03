@@ -37,6 +37,7 @@ const App = () => {
     const [editMode, setEditMode] = useState(false);
     const [newItem, setNewItem] = useState("");
     const [modalState, setModalState] = useState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
+    const [isLocalChange, setIsLocalChange] = useState(false);
 
     const categories = Object.keys(contents).map(key => ({ id: key, title: contents[key].title }));
     const allTargets = [
@@ -48,7 +49,23 @@ const App = () => {
     useEffect(() => {
         localStorage.setItem('cs_guide_steps_v9', JSON.stringify(steps));
         localStorage.setItem('cs_guide_contents_v9', JSON.stringify(contents));
-    }, [steps, contents]);
+
+        if (isLocalChange) {
+            const autoDeploy = async () => {
+                if (!supabase) return;
+                setIsLoadingDb(true);
+                try {
+                    const payload = [];
+                    Object.keys(steps).forEach(k => payload.push({ id: k, type: 'step', data: steps[k] }));
+                    Object.keys(contents).forEach(k => payload.push({ id: k, type: 'content', data: contents[k] }));
+                    await supabase.from('cs_guide_data').upsert(payload);
+                } catch (err) { console.error('Auto deploy failed:', err); }
+                setIsLoadingDb(false);
+            };
+            autoDeploy();
+            setIsLocalChange(false);
+        }
+    }, [steps, contents, isLocalChange, supabase]);
 
     // Database Sync Logic
     const loadFromDB = async (silent = false) => {
@@ -81,22 +98,6 @@ const App = () => {
         }
     }, [supabase]);
 
-    const deployToDB = async () => {
-        if (!supabase) return alert('먼저 Supabase 연결 설정을 완료해주세요.');
-        if (!confirm('현재 내 PC의 가이드를 DB에 덮어씁니다. 진행할까요?')) return;
-        setIsLoadingDb(true);
-        try {
-            const payload = [];
-            Object.keys(steps).forEach(k => payload.push({ id: k, type: 'step', data: steps[k] }));
-            Object.keys(contents).forEach(k => payload.push({ id: k, type: 'content', data: contents[k] }));
-
-            const { error } = await supabase.from('cs_guide_data').upsert(payload);
-            if (error) throw error;
-            alert('모든 가이드가 최신버전으로 DB에 배포되었습니다!');
-        } catch (err) {
-            console.error(err); alert('저장 실패: ' + err.message);
-        } finally { setIsLoadingDb(false); }
-    };
 
     const [searchExpandedIdx, setSearchExpandedIdx] = useState(null);
 
@@ -144,6 +145,7 @@ const App = () => {
             return newSteps;
         });
         setModalState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
+        setIsLocalChange(true);
     };
 
     const handleDeleteChoice = (index) => {
@@ -153,6 +155,7 @@ const App = () => {
                 newSteps[activeStep].choices.splice(index, 1);
                 return newSteps;
             });
+            setIsLocalChange(true);
         }
     };
 
@@ -161,6 +164,7 @@ const App = () => {
         if (!newItem.trim()) return;
         setContents(prev => ({ ...prev, [stepKey]: { ...prev[stepKey], list: [...prev[stepKey].list, newItem.trim()] } }));
         setNewItem("");
+        setIsLocalChange(true);
     };
     const removeItem = (stepKey, index) => {
         setContents(prev => {
@@ -168,6 +172,7 @@ const App = () => {
             newList.splice(index, 1);
             return { ...prev, [stepKey]: { ...prev[stepKey], list: newList } };
         });
+        setIsLocalChange(true);
     };
     const updateItem = (stepKey, index, newText) => {
         setContents(prev => {
@@ -175,6 +180,7 @@ const App = () => {
             newList[index] = newText;
             return { ...prev, [stepKey]: { ...prev[stepKey], list: newList } };
         });
+        setIsLocalChange(true);
     };
     const moveOrCopyItem = (sourceKey, targetKey, index, actionType) => {
         setContents(prev => {
@@ -184,6 +190,7 @@ const App = () => {
             const newTargetList = [...prev[targetKey].list, itemText];
             return { ...prev, [sourceKey]: { ...prev[sourceKey], list: newSourceList }, [targetKey]: { ...prev[targetKey], list: newTargetList } };
         });
+        setIsLocalChange(true);
     };
 
     const handleCopyMemo = () => {
@@ -210,13 +217,12 @@ const App = () => {
             {/* 공통 헤더 */}
             <header className="mb-14 text-center animate-fade-in relative w-full">
                 <div className="absolute right-0 top-0 flex items-center gap-2">
-                    {supabase && (
-                        <div className="flex bg-slate-100 rounded-2xl p-1 shadow-inner border border-slate-200">
-                            <button onClick={loadFromDB} disabled={isLoadingDb} className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white rounded-xl transition-all flex items-center gap-1"><Icon name="cloud-download" size={14} /> DB동기화</button>
-                            <button onClick={deployToDB} disabled={isLoadingDb} className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-white rounded-xl transition-all flex items-center gap-1"><Icon name="cloud-upload" size={14} /> 배포하기</button>
-                        </div>
-                    )}
                     <button onClick={() => setIsSbModalOpen(true)} className="p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-2xl transition-all" title="DB 설정"><Icon name="database" size={20} /></button>
+                    {supabase && (
+                        <button onClick={() => loadFromDB(false)} disabled={isLoadingDb} className="px-4 py-2.5 bg-white text-slate-700 border-2 border-slate-200 hover:border-emerald-400 hover:text-emerald-600 font-bold rounded-2xl shadow-lg transition-all flex items-center gap-2">
+                            <Icon name="cloud-download" size={16} /> DB에서 최신화
+                        </button>
+                    )}
                     <button onClick={() => setEditMode(!editMode)} className={`px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg transition-all ${editMode ? 'bg-indigo-600 text-white shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-blue-400'}`}>
                         <Icon name={editMode ? 'check' : 'edit-3'} size={16} /> {editMode ? '편집 모드 완료' : '화면 편집 켜기'}
                     </button>
