@@ -21,10 +21,14 @@ const matchSearch = (target, query) => {
 
 // --- GLOBAL COMPONENTS ---
 const Icon = ({ name, size = 24, className = "" }) => {
-    useEffect(() => {
-        if (window.lucide) window.lucide.createIcons();
-    }, [name]);
-    return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+    const ref = React.useRef(null);
+    React.useEffect(() => {
+        if (ref.current && window.lucide) {
+            ref.current.innerHTML = `<i data-lucide="${name}" class="${className}" style="width: ${size}px; height: ${size}px;"></i>`;
+            window.lucide.createIcons({ root: ref.current });
+        }
+    }, [name, size, className]);
+    return <span ref={ref} className="inline-flex items-center justify-center flex-shrink-0" />;
 };
 
 const Step = ({ title, description, children, icon, color = "blue", onBack }) => (
