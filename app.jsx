@@ -299,7 +299,7 @@ const App = () => {
                                     }
 
                                     return matches.map((m, i) => (
-                                        <div key={i} className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { setSearchKeyword(''); navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
+                                        <div key={i} className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
                                             <div className="flex items-center gap-3 mb-3">
                                                 <span className={`p-2 rounded-xl transition-colors ${m.type === 'success' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' : m.type === 'info' ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100'}`}>
                                                     <Icon name={m.icon} size={20} />
