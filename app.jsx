@@ -101,7 +101,7 @@ const App = () => {
                             title: `[H] ${row['키워드2'] || row['키워드']}`,
                             icon: "book-open",
                             type: "info",
-                            list: [(row['내용'] || '').replace(/\/n/g, '\n').replace(/\\n/g, '\n').replace(/~n/g, '\n').replace(/NL/gi, '\n')],
+                            list: [(row['내용'] || '').replace(/\/n/g, '\n').replace(/\\n/g, '\n').replace(/~n/g, '\n').replace(/NL/gi, '\n').replace(/␤/g, '\n')],
                             image: row['이미지들']
                         };
                     });
