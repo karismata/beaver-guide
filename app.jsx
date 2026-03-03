@@ -98,10 +98,10 @@ const App = () => {
                     infoData.forEach(row => {
                         dbContents[`info_${row.id}`] = {
                             isInfo: true,
-                            title: `[한서치] ${row['키워드2'] || row['키워드']}`,
+                            title: `[H] ${row['키워드2'] || row['키워드']}`,
                             icon: "book-open",
                             type: "info",
-                            list: [row['내용'] || ''],
+                            list: [(row['내용'] || '').replace(/\/n/g, '\n').replace(/\\n/g, '\n').replace(/~n/g, '\n')],
                             image: row['이미지들']
                         };
                     });
@@ -265,16 +265,81 @@ const App = () => {
             <div className="w-full flex flex-col lg:flex-row gap-8 items-start justify-center flex-grow">
                 {/* Main Content Area */}
                 <div className="w-full flex-1 flex justify-center min-w-0">
-                    {steps[activeStep] ? (
+                    {activeStep === '__search__' ? (
+                        <div className="w-full max-w-3xl animate-fade-in">
+                            <div className="flex items-center gap-4 mb-6">
+                                <button onClick={goBack} className="p-3 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-bold flex items-center shadow-sm">
+                                    <Icon name="arrow-left" size={20} className="mr-2" /> 뒤로
+                                </button>
+                                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                                    <div className="p-2 bg-blue-100 text-blue-600 rounded-xl"><Icon name="search" size={24} /></div>
+                                    "{searchKeyword}" 검색 결과 모아보기
+                                </h2>
+                            </div>
+                            <div className="space-y-4">
+                                {(() => {
+                                    const matches = [];
+                                    const searchLower = searchKeyword.toLowerCase();
+                                    Object.keys(contents).forEach(k => {
+                                        const c = contents[k];
+                                        let titleMatched = false;
+                                        if (c.title.toLowerCase().includes(searchLower)) {
+                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, isTitleMatch: true, image: c.image });
+                                            titleMatched = true;
+                                        }
+                                        c.list.forEach((item, idx) => {
+                                            if (item && item.toLowerCase().includes(searchLower)) {
+                                                matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, item, matchIdx: idx, image: idx === 0 ? c.image : null, isInfo: c.isInfo });
+                                            }
+                                        });
+                                    });
+
+                                    if (matches.length === 0) {
+                                        return <div className="text-center p-12 bg-white rounded-3xl border-2 border-dashed border-slate-200 shadow-sm"><Icon name="search-x" size={48} className="mx-auto text-slate-300 mb-4" /><p className="text-slate-500 font-bold text-lg">일치하는 결과가 없습니다.</p></div>;
+                                    }
+
+                                    return matches.map((m, i) => (
+                                        <div key={i} className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { setSearchKeyword(''); navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <span className={`p-2 rounded-xl transition-colors ${m.type === 'success' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' : m.type === 'info' ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100'}`}>
+                                                    <Icon name={m.icon} size={20} />
+                                                </span>
+                                                <span className="font-black text-slate-800 text-xl group-hover:text-blue-600 transition-colors">{m.title}</span>
+                                            </div>
+                                            {m.item ? (
+                                                <div className="pl-14">
+                                                    <p className="text-slate-600 font-medium whitespace-pre-line leading-relaxed line-clamp-4">
+                                                        {m.item}
+                                                    </p>
+                                                    {m.image && m.matchIdx === 0 && (
+                                                        <div className="mt-4 rounded-xl overflow-hidden border border-slate-200">
+                                                            <img src={m.image} className="w-full max-h-48 object-cover bg-slate-50" alt="첨부 이미지" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <p className="pl-14 text-slate-400 text-sm font-bold italic">문서 제목이 검색어와 일치합니다.</p>
+                                            )}
+                                        </div>
+                                    ));
+                                })()}
+                            </div>
+                        </div>
+                    ) : steps[activeStep] ? (
                         <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined}>
-                            {activeStep.includes('category') && (
+                            {(activeStep === 'start' || activeStep.includes('category')) && (
                                 <div className="w-full max-w-3xl mb-8 relative">
                                     <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                     <input
                                         type="text"
-                                        placeholder="바로 검색하기..."
+                                        placeholder="어떤 문제가 발생했나요? (검색어 입력 후 Enter)"
                                         value={searchKeyword}
                                         onChange={e => setSearchKeyword(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter' && searchKeyword.trim().length > 0) {
+                                                navigateTo('__search__', `검색: ${searchKeyword}`);
+                                            }
+                                        }}
                                         className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-bold text-slate-700 bg-white"
                                     />
                                     {searchKeyword.length > 0 && (
@@ -293,8 +358,8 @@ const App = () => {
                                                     return Array.from(keys);
                                                 };
 
-                                                const scopeKeys = getScopeContentKeys(activeStep);
-                                                const allSearchableKeys = [
+                                                const scopeKeys = activeStep === 'start' ? [] : getScopeContentKeys(activeStep);
+                                                const allSearchableKeys = activeStep === 'start' ? Object.keys(contents) : [
                                                     ...scopeKeys,
                                                     ...Object.keys(contents).filter(k => k.startsWith('info_') && !scopeKeys.includes(k))
                                                 ];
