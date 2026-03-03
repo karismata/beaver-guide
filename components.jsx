@@ -51,10 +51,10 @@ const Step = ({ title, description, children, icon, color = "blue", onBack }) =>
 );
 
 const ChoiceButton = ({ label, onClick, sublabel, icon, color = "blue", editMode, onEdit, onDelete }) => (
-    <div className="relative group">
+    <div className="relative group h-full">
         <button
             onClick={onClick}
-            className={`w-full group relative flex items-center p-6 bg-white border-2 border-slate-200 rounded-[2rem] hover:border-${color}-500 hover:shadow-2xl hover:shadow-${color}-100 transition-all duration-300 text-left overflow-hidden`}
+            className={`w-full h-full group relative flex items-center p-6 bg-white border-2 border-slate-200 rounded-[2rem] hover:border-${color}-500 hover:shadow-2xl hover:shadow-${color}-100 transition-all duration-300 text-left overflow-hidden`}
         >
             <div className="flex-grow">
                 <span className={`block font-bold text-xl text-slate-800 group-hover:text-${color}-600 mb-1`}>{label}</span>

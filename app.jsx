@@ -220,6 +220,31 @@ const App = () => {
         setIsLocalChange(true);
     };
 
+    const formatBizNum = (val) => {
+        const raw = val.replace(/[^0-9]/g, '');
+        if (raw.length <= 3) return raw;
+        if (raw.length <= 5) return raw.slice(0, 3) + '-' + raw.slice(3);
+        return raw.slice(0, 3) + '-' + raw.slice(3, 5) + '-' + raw.slice(5, 10);
+    };
+
+    const formatContact = (val) => {
+        const raw = val.replace(/[^0-9]/g, '');
+        if (raw.length <= 2) return raw;
+        if (raw.startsWith('02')) {
+            if (raw.length <= 5) return raw.slice(0, 2) + '-' + raw.slice(2);
+            if (raw.length <= 9) return raw.slice(0, 2) + '-' + raw.slice(2, 5) + '-' + raw.slice(5);
+            return raw.slice(0, 2) + '-' + raw.slice(2, 6) + '-' + raw.slice(6, 10);
+        } else if (raw.startsWith('15') || raw.startsWith('16') || raw.startsWith('18')) {
+            if (raw.length <= 4) return raw;
+            return raw.slice(0, 4) + '-' + raw.slice(4, 8);
+        } else {
+            if (raw.length <= 3) return raw;
+            if (raw.length <= 6) return raw.slice(0, 3) + '-' + raw.slice(3);
+            if (raw.length <= 10) return raw.slice(0, 3) + '-' + raw.slice(3, 6) + '-' + raw.slice(6);
+            return raw.slice(0, 3) + '-' + raw.slice(3, 7) + '-' + raw.slice(7, 11);
+        }
+    };
+
     const handleCopyMemo = () => {
         const tags = history.filter(h => h.tag && h.tag !== "상황 파악 완료").map(h => h.tag).join(" > ");
         const copyText = `[상담 메모]\n매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n문의내용: ${memoData.issue || '미입력'}\n확인경로: ${tags || '없음'}`;
@@ -463,11 +488,11 @@ const App = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1">사업자번호</label>
-                                <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 123-45-67890" />
+                                <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1">연락처</label>
-                                <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 010-1234-5678" />
+                                <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1">고객 문의내용</label>
