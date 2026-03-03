@@ -50,27 +50,41 @@ const Step = ({ title, description, children, icon, color = "blue", onBack }) =>
     </div>
 );
 
-const ChoiceButton = ({ label, onClick, sublabel, icon, color = "blue", editMode, onEdit, onDelete }) => (
-    <div className="relative group h-full">
-        <button
-            onClick={onClick}
-            className={`w-full h-full group relative flex items-center p-6 bg-white border-2 border-slate-200 rounded-[2rem] hover:border-${color}-500 hover:shadow-2xl hover:shadow-${color}-100 transition-all duration-300 text-left overflow-hidden`}
-        >
-            <div className="flex-grow">
-                <span className={`block font-bold text-xl text-slate-800 group-hover:text-${color}-600 mb-1`}>{label}</span>
-                {sublabel && <span className="text-sm text-slate-400 group-hover:text-slate-500">{sublabel}</span>}
-            </div>
-            {icon && <Icon name={icon} className={`text-slate-300 group-hover:text-${color}-500 transition-colors`} />}
-            <div className={`absolute bottom-0 left-0 h-1.5 w-0 bg-${color}-500 transition-all duration-300 group-hover:w-full`}></div>
-        </button>
-        {editMode && (
-            <div className="absolute top-2 right-2 flex gap-1 z-10">
-                <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-2 bg-slate-100 text-blue-600 rounded-full hover:bg-blue-100 transition-colors shadow-sm"><Icon name="pencil" size={14} /></button>
-                <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 bg-slate-100 text-rose-600 rounded-full hover:bg-rose-100 transition-colors shadow-sm"><Icon name="trash-2" size={14} /></button>
-            </div>
-        )}
-    </div>
-);
+const ChoiceButton = ({ label, onClick, sublabel, icon, color = "blue", editMode, onEdit, onDelete }) => {
+    // แยก "한글명" 과 "(영문명)" 으로 분리
+    const parts = label.match(/^(.*?)\s*(\(.*\))$/);
+
+    return (
+        <div className="relative group h-full">
+            <button
+                onClick={onClick}
+                className={`w-full h-full group relative flex items-center p-6 bg-white border-2 border-slate-200 rounded-[2rem] hover:border-${color}-500 hover:shadow-2xl hover:shadow-${color}-100 transition-all duration-300 text-left overflow-hidden min-h-[120px]`}
+            >
+                <div className="flex-grow">
+                    <div className={`font-bold text-slate-800 group-hover:text-${color}-600 mb-1 leading-tight`}>
+                        {parts ? (
+                            <>
+                                <span className="text-xl block">{parts[1]}</span>
+                                <span className="block text-sm text-slate-400 font-semibold mt-1">{parts[2]}</span>
+                            </>
+                        ) : (
+                            <span className="text-xl block">{label}</span>
+                        )}
+                    </div>
+                    {sublabel && <span className="text-sm text-slate-400 group-hover:text-slate-500">{sublabel}</span>}
+                </div>
+                {icon && <Icon name={icon} size={28} className={`text-slate-300 group-hover:text-${color}-500 transition-colors ml-3 flex-shrink-0`} />}
+                <div className={`absolute bottom-0 left-0 h-1.5 w-0 bg-${color}-500 transition-all duration-300 group-hover:w-full`}></div>
+            </button>
+            {editMode && (
+                <div className="absolute top-2 right-2 flex gap-1 z-10">
+                    <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-2 bg-slate-100 text-blue-600 rounded-full hover:bg-blue-100 transition-colors shadow-sm"><Icon name="pencil" size={14} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 bg-slate-100 text-rose-600 rounded-full hover:bg-rose-100 transition-colors shadow-sm"><Icon name="trash-2" size={14} /></button>
+                </div>
+            )}
+        </div>
+    );
+};
 
 // --- URL LINKIFY COMPONENT ---
 const Linkify = ({ text }) => {

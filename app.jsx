@@ -35,6 +35,7 @@ const App = () => {
     });
 
     const [editMode, setEditMode] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [newItem, setNewItem] = useState("");
     const [modalState, setModalState] = useState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
     const [isLocalChange, setIsLocalChange] = useState(false);
@@ -268,17 +269,6 @@ const App = () => {
         <div className="min-h-screen py-10 px-4 flex flex-col items-center max-w-[1200px] mx-auto">
             {/* 공통 헤더 */}
             <header className="mb-14 text-center animate-fade-in relative w-full">
-                <div className="absolute right-0 top-0 flex items-center gap-2">
-                    <button onClick={() => setIsSbModalOpen(true)} className="p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-xl transition-all" title="DB 설정"><Icon name="database" size={16} /></button>
-                    {supabase && (
-                        <button onClick={() => loadFromDB(false)} disabled={isLoadingDb} className="px-3 py-1.5 text-sm bg-white text-slate-700 border-2 border-slate-200 hover:border-emerald-400 hover:text-emerald-600 font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
-                            <Icon name="cloud-download" size={14} /> DB 최신화
-                        </button>
-                    )}
-                    <button onClick={() => setEditMode(!editMode)} className={`px-3 py-1.5 text-sm rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition-all ${editMode ? 'bg-indigo-600 text-white shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-blue-400'}`}>
-                        <Icon name={editMode ? 'check' : 'edit-3'} size={14} /> {editMode ? '편집 모드 완료' : '화면 편집 켜기'}
-                    </button>
-                </div>
                 <div className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-full text-xs font-black tracking-widest uppercase mb-6 shadow-xl shadow-blue-200 mt-2">
                     <Icon name="headset" size={14} /> Technical Support Team
                 </div>
@@ -528,9 +518,29 @@ const App = () => {
                         <Icon name="info" size={16} />
                         <span>장비별 하위 분류 및 모든 항목 편집 기능 장착 완료</span>
                     </div>
-                    <div className="flex gap-4">
-                        <button onClick={exportToExcel} className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all text-sm shadow-sm active:scale-95">
-                            <Icon name="download" size={14} /> 엑셀 파일 다운로드
+                    <div className="flex gap-4 relative">
+                        {isMenuOpen && (
+                            <div className="absolute bottom-full right-0 mb-4 bg-white border-2 border-slate-100 rounded-3xl p-5 shadow-2xl flex flex-col gap-3 min-w-[240px] animate-fade-in z-50 origin-bottom-right">
+                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 mb-1">관리자 도구</h4>
+                                {supabase && (
+                                    <button onClick={() => { loadFromDB(false); setIsMenuOpen(false); }} disabled={isLoadingDb} className="w-full px-4 py-3.5 text-sm bg-white text-slate-700 border-2 border-slate-100 hover:border-emerald-400 hover:text-emerald-600 font-bold rounded-xl transition-all flex items-center gap-2.5 text-left active:scale-95 shadow-sm hover:shadow-md">
+                                        <Icon name="cloud-download" size={16} /> DB 최신화
+                                    </button>
+                                )}
+                                <button onClick={() => { setEditMode(!editMode); setIsMenuOpen(false); }} className={`w-full px-4 py-3.5 text-sm rounded-xl font-bold flex items-center gap-2.5 transition-all active:scale-95 shadow-sm hover:shadow-md ${editMode ? 'bg-indigo-600 text-white border-2 border-indigo-600 hover:bg-indigo-700 shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-100 hover:border-blue-400 hover:text-blue-600'}`}>
+                                    <Icon name={editMode ? 'check' : 'edit-3'} size={16} /> {editMode ? '편집 모드 종료' : '화면 편집 켜기'}
+                                </button>
+                                <button onClick={() => { exportToExcel(); setIsMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-3.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all text-sm shadow-sm hover:shadow-md active:scale-95">
+                                    <Icon name="download" size={16} /> 엑셀 다운로드
+                                </button>
+                            </div>
+                        )}
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className={`p-3 rounded-xl transition-all shadow-sm border-2 block ${isMenuOpen ? 'bg-slate-800 text-white border-slate-800 shadow-lg' : 'bg-white text-slate-400 border-slate-200 hover:text-slate-700 hover:border-slate-300'}`}
+                            title="관리자 도구 열기"
+                        >
+                            <Icon name="settings" size={20} />
                         </button>
                     </div>
                 </div>
