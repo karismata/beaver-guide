@@ -573,7 +573,8 @@
         const App = () => {
             const [activeStep, setActiveStep] = useState('start');
             const [history, setHistory] = useState([]);
-            const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', issue: '' });
+            const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', contact: '', issue: '' });
+            const [searchKeyword, setSearchKeyword] = useState('');
 
             // Supabase State (Hardcoded zero-config setup)
             const [sbConfig, setSbConfig] = useState(() => {
@@ -753,7 +754,7 @@
 
             const handleCopyMemo = () => {
                 const tags = history.filter(h => h.tag && h.tag !== "상황 파악 완료").map(h => h.tag).join(" > ");
-                const copyText = `[상담 메모]\n매장명: ${memoData.storeName || '미입력'}\n사업자/연락처: ${memoData.bizNum || '미입력'}\n문의내용: ${memoData.issue || '미입력'}\n확인경로: ${tags || '없음'}`;
+                const copyText = `[상담 메모]\n매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n문의내용: ${memoData.issue || '미입력'}\n확인경로: ${tags || '없음'}`;
                 navigator.clipboard.writeText(copyText).catch(err => console.error('복사 실패:', err));
             };
 
@@ -798,6 +799,42 @@
                         <div className="w-full flex-1 flex justify-center min-w-0">
                             {steps[activeStep] ? (
                                 <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined}>
+                                    {activeStep.includes('category') && (
+                                        <div className="w-full max-w-3xl mb-8 relative">
+                                            <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                            <input
+                                                type="text"
+                                                placeholder="순서대로 누르지 않고 바로 증상 검색하기..."
+                                                value={searchKeyword}
+                                                onChange={e => setSearchKeyword(e.target.value)}
+                                                className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-bold text-slate-700 bg-white"
+                                            />
+                                            {searchKeyword.length > 0 && (
+                                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20 max-h-80 overflow-y-auto custom-scrollbar">
+                                                    {Object.keys(contents).filter(key =>
+                                                        contents[key].title.includes(searchKeyword) ||
+                                                        contents[key].list.some(item => item.includes(searchKeyword))
+                                                    ).map(k => (
+                                                        <button key={k} onClick={() => { setSearchKeyword(''); navigateTo(k, `검색결과: ${contents[k].title}`); }} className="w-full text-left p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex items-start gap-3 transition-colors">
+                                                            <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl flex-shrink-0">
+                                                                <Icon name={contents[k].icon} size={16} />
+                                                            </span>
+                                                            <div>
+                                                                <div className="font-bold text-slate-800 mb-1">{contents[k].title}</div>
+                                                                <div className="text-xs text-slate-500 line-clamp-2">{contents[k].list[0]?.split('\n')[0] || '내용 없음'}</div>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                    {Object.keys(contents).filter(key =>
+                                                        contents[key].title.includes(searchKeyword) ||
+                                                        contents[key].list.some(item => item.includes(searchKeyword))
+                                                    ).length === 0 && (
+                                                            <div className="p-4 text-center text-slate-500 text-sm font-bold">검색 결과가 없습니다.</div>
+                                                        )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                     <div className={`grid grid-cols-1 ${steps[activeStep].choices.length > 3 ? 'sm:grid-cols-2' : ''} gap-4 w-full max-w-3xl`}>
                                         {steps[activeStep].choices.map((choice, idx) => (
                                             <ChoiceButton
@@ -836,7 +873,7 @@
                                     removeItem={removeItem}
                                     updateItem={updateItem}
                                     moveOrCopyItem={moveOrCopyItem}
-                                    onReset={() => { setMemoData({ storeName: '', bizNum: '', issue: '' }); setHistory([]); setActiveStep('start'); }}
+                                    onReset={() => { setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' }); setHistory([]); setActiveStep('start'); }}
                                     onBack={goBack}
                                 />
                             ) : (
@@ -867,8 +904,12 @@
                                         <input value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 비버카페 강남점" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">사업자번호 / 연락처</label>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">사업자번호</label>
                                         <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 123-45-67890" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">연락처</label>
+                                        <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 010-1234-5678" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 mb-1">고객 문의내용</label>
@@ -888,7 +929,7 @@
 
                                 <button onClick={() => {
                                     if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
-                                        setMemoData({ storeName: '', bizNum: '', issue: '' });
+                                        setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' });
                                         setHistory([]);
                                         setActiveStep('start');
                                     }
