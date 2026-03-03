@@ -149,14 +149,14 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
     };
 
     return (
-        <div className={`w-full max-w-2xl p-8 rounded-[2.5rem] border-2 ${data.type === 'success' ? 'bg-emerald-50 border-emerald-100 shadow-emerald-50' : 'bg-rose-50 border-rose-100 shadow-rose-50'} shadow-2xl animate-fade-in`}>
+        <div className={`w-full max-w-2xl p-8 rounded-[2.5rem] border-2 ${data.type === 'success' ? 'bg-emerald-50 border-emerald-100 shadow-emerald-50' : data.type === 'info' ? 'bg-indigo-50 border-indigo-100 shadow-indigo-50' : 'bg-rose-50 border-rose-100 shadow-rose-50'} shadow-2xl animate-fade-in`}>
             <div className="flex flex-col gap-6 mb-8">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                        <div className={`p-4 rounded-2xl ${data.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'} text-white mr-4 shadow-lg shadow-current/20`}>
+                        <div className={`p-4 rounded-2xl ${data.type === 'success' ? 'bg-emerald-500' : data.type === 'info' ? 'bg-indigo-500' : 'bg-rose-500'} text-white mr-4 shadow-lg shadow-current/20`}>
                             <Icon name={data.icon} size={32} />
                         </div>
-                        <h3 className={`text-2xl font-black tracking-tight ${data.type === 'success' ? 'text-emerald-900' : 'text-rose-900'}`}>{data.title}</h3>
+                        <h3 className={`text-2xl font-black tracking-tight ${data.type === 'success' ? 'text-emerald-900' : data.type === 'info' ? 'text-indigo-900' : 'text-rose-900'}`}>{data.title}</h3>
                     </div>
                 </div>
 
@@ -183,7 +183,7 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
                             className={`group bg-white rounded-2xl border transition-all ${expandedIdx === originalIdx ? 'border-blue-400 shadow-lg ring-1 ring-blue-100 accordion-open' : 'border-slate-200 hover:border-slate-300'}`}
                         >
                             <div className="w-full flex items-center p-4 text-left cursor-pointer" onClick={() => toggleAccordion(originalIdx)}>
-                                <div className={`mr-3 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${data.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                <div className={`mr-3 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${data.type === 'success' ? 'bg-emerald-100 text-emerald-600' : data.type === 'info' ? 'bg-indigo-100 text-indigo-600' : 'bg-rose-100 text-rose-600'}`}>
                                     <Icon name={expandedIdx === originalIdx ? "minus" : "plus"} size={14} />
                                 </div>
                                 <span className="flex-grow text-slate-700 font-bold text-lg truncate">
@@ -218,12 +218,19 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="text-slate-600 font-medium whitespace-pre-line pb-2 leading-relaxed">
-                                            <Linkify text={item} />
-                                        </p>
+                                        <div className="flex flex-col gap-4">
+                                            <p className="text-slate-600 font-medium whitespace-pre-line pb-2 leading-relaxed">
+                                                <Linkify text={item} />
+                                            </p>
+                                            {data.image && originalIdx === 0 && (
+                                                <div className="mt-2 rounded-xl overflow-hidden shadow-sm border border-slate-200">
+                                                    <img src={data.image} alt="첨부 이미지" className="w-full h-auto object-contain bg-slate-50" />
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                                {!isEditing && (
+                                {!isEditing && !data.isInfo && (
                                     <div className="flex justify-end gap-2 pb-4 flex-wrap mt-2">
                                         <button
                                             onClick={(e) => openActionModal(e, originalIdx, item)}
@@ -256,22 +263,24 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
                 )}
             </div>
 
-            <div className="relative mb-8">
-                <input
-                    type="text"
-                    value={newItem}
-                    onChange={(e) => setNewItem(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addItem(stepKey)}
-                    placeholder="새로운 대응 지침 추가..."
-                    className="w-full p-4 pr-16 bg-white border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:outline-none font-bold text-slate-700 placeholder:text-slate-300 shadow-sm"
-                />
-                <button
-                    onClick={() => addItem(stepKey)}
-                    className="absolute right-2 top-2 bottom-2 px-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg"
-                >
-                    <Icon name="plus" size={20} />
-                </button>
-            </div>
+            {!data.isInfo && (
+                <div className="relative mb-8">
+                    <input
+                        type="text"
+                        value={newItem}
+                        onChange={(e) => setNewItem(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addItem(stepKey)}
+                        placeholder="새로운 대응 지침 추가..."
+                        className="w-full p-4 pr-16 bg-white border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:outline-none font-bold text-slate-700 placeholder:text-slate-300 shadow-sm"
+                    />
+                    <button
+                        onClick={() => addItem(stepKey)}
+                        className="absolute right-2 top-2 bottom-2 px-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg"
+                    >
+                        <Icon name="plus" size={20} />
+                    </button>
+                </div>
+            )}
 
             <div className="flex gap-3 mt-4">
                 <button onClick={onBack} className="flex-1 flex items-center justify-center py-5 bg-white border-2 border-slate-200 text-slate-600 rounded-[1.5rem] font-black text-lg hover:bg-slate-50 transition-all active:scale-95">

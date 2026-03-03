@@ -47,8 +47,12 @@ const App = () => {
 
     // LocalStorage Save Effect (fallback)
     useEffect(() => {
+        const localContents = {};
+        Object.keys(contents).forEach(k => {
+            if (!k.startsWith('info_')) localContents[k] = contents[k];
+        });
         localStorage.setItem('cs_guide_steps_v9', JSON.stringify(steps));
-        localStorage.setItem('cs_guide_contents_v9', JSON.stringify(contents));
+        localStorage.setItem('cs_guide_contents_v9', JSON.stringify(localContents));
 
         if (isLocalChange) {
             const autoDeploy = async () => {
@@ -57,7 +61,11 @@ const App = () => {
                 try {
                     const payload = [];
                     Object.keys(steps).forEach(k => payload.push({ id: k, type: 'step', data: steps[k] }));
-                    Object.keys(contents).forEach(k => payload.push({ id: k, type: 'content', data: contents[k] }));
+                    Object.keys(contents).forEach(k => {
+                        if (!k.startsWith('info_')) {
+                            payload.push({ id: k, type: 'content', data: contents[k] });
+                        }
+                    });
                     await supabase.from('cs_guide_data').upsert(payload);
                 } catch (err) { console.error('Auto deploy failed:', err); }
                 setIsLoadingDb(false);
@@ -74,12 +82,31 @@ const App = () => {
         try {
             const { data, error } = await supabase.from('cs_guide_data').select('*');
             if (error) throw error;
+
+            // 한서치 info 데이터 불러오기
+            const { data: infoData, error: infoError } = await supabase.from('info').select('*').order('id', { ascending: false });
+
             if (data && data.length > 0) {
                 const dbSteps = {}; const dbContents = {};
                 data.forEach(row => {
                     if (row.type === 'step') dbSteps[row.id] = row.data;
                     if (row.type === 'content') dbContents[row.id] = row.data;
                 });
+
+                // 한서치 info 데이터를 contents에 병합
+                if (!infoError && infoData) {
+                    infoData.forEach(row => {
+                        dbContents[`info_${row.id}`] = {
+                            isInfo: true,
+                            title: `[한서치] ${row['키워드2'] || row['키워드']}`,
+                            icon: "book-open",
+                            type: "info",
+                            list: [row['내용'] || ''],
+                            image: row['이미지들']
+                        };
+                    });
+                }
+
                 if (Object.keys(dbSteps).length > 0) setSteps(dbSteps);
                 if (Object.keys(dbContents).length > 0) setContents(dbContents);
                 if (!silent) alert('DB에서 최신 가이드를 성공적으로 불러왔습니다!');
@@ -203,6 +230,7 @@ const App = () => {
         // ... same export ...
         let csvContent = "\uFEFF분류,대응 지침\n";
         Object.keys(contents).forEach(key => {
+            if (key.startsWith('info_')) return;
             contents[key].list.forEach(item => { csvContent += `"${contents[key].title}","${item.replace(/"/g, '""')}"\n`; });
         });
         const link = document.createElement("a");
@@ -266,9 +294,14 @@ const App = () => {
                                                 };
 
                                                 const scopeKeys = getScopeContentKeys(activeStep);
-                                                const results = scopeKeys.filter(key =>
+                                                const allSearchableKeys = [
+                                                    ...scopeKeys,
+                                                    ...Object.keys(contents).filter(k => k.startsWith('info_') && !scopeKeys.includes(k))
+                                                ];
+
+                                                const results = allSearchableKeys.filter(key =>
                                                     contents[key].title.includes(searchKeyword) ||
-                                                    contents[key].list.some(item => item.includes(searchKeyword))
+                                                    contents[key].list.some(item => item && item.includes(searchKeyword))
                                                 );
 
                                                 if (results.length === 0) {
