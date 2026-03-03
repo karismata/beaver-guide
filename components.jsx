@@ -150,6 +150,15 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
 
     return (
         <div className={`w-full max-w-2xl p-8 rounded-[2.5rem] border-2 ${data.type === 'success' ? 'bg-emerald-50 border-emerald-100 shadow-emerald-50' : data.type === 'info' ? 'bg-indigo-50 border-indigo-100 shadow-indigo-50' : 'bg-rose-50 border-rose-100 shadow-rose-50'} shadow-2xl animate-fade-in`}>
+            <div className="flex gap-2 mb-6">
+                <button onClick={onBack} className="px-4 py-2 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-bold flex items-center shadow-sm active:scale-95">
+                    <Icon name="arrow-left" size={16} className="mr-2" /> 이전으로
+                </button>
+                <button onClick={onReset} className="px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-black transition-all font-bold flex items-center shadow-sm active:scale-95">
+                    <Icon name="rotate-ccw" size={16} className="mr-2" /> 처음으로
+                </button>
+            </div>
+
             <div className="flex flex-col gap-6 mb-8">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
@@ -281,16 +290,6 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
                     </button>
                 </div>
             )}
-
-            <div className="flex gap-3 mt-4">
-                <button onClick={onBack} className="flex-1 flex items-center justify-center py-5 bg-white border-2 border-slate-200 text-slate-600 rounded-[1.5rem] font-black text-lg hover:bg-slate-50 transition-all active:scale-95">
-                    <Icon name="arrow-left" size={20} className="mr-3" /> 이전으로
-                </button>
-                <button onClick={onReset} className="flex-[2] flex items-center justify-center py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-lg hover:bg-black transition-all shadow-xl active:scale-95">
-                    <Icon name="rotate-ccw" size={20} className="mr-3" /> 처음으로
-                </button>
-            </div>
-
             {/* 이동/복사 모달 */}
             {actionModal.isOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

@@ -246,8 +246,7 @@ const App = () => {
     };
 
     const handleCopyMemo = () => {
-        const tags = history.filter(h => h.tag && h.tag !== "상황 파악 완료").map(h => h.tag).join(" > ");
-        const copyText = `[상담 메모]\n매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n문의내용: ${memoData.issue || '미입력'}\n확인경로: ${tags || '없음'}`;
+        const copyText = `매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n문의내용: ${memoData.issue || '미입력'}`;
         navigator.clipboard.writeText(copyText).catch(err => console.error('복사 실패:', err));
     };
 
@@ -270,14 +269,14 @@ const App = () => {
             {/* 공통 헤더 */}
             <header className="mb-14 text-center animate-fade-in relative w-full">
                 <div className="absolute right-0 top-0 flex items-center gap-2">
-                    <button onClick={() => setIsSbModalOpen(true)} className="p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-2xl transition-all" title="DB 설정"><Icon name="database" size={20} /></button>
+                    <button onClick={() => setIsSbModalOpen(true)} className="p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-xl transition-all" title="DB 설정"><Icon name="database" size={16} /></button>
                     {supabase && (
-                        <button onClick={() => loadFromDB(false)} disabled={isLoadingDb} className="px-4 py-2.5 bg-white text-slate-700 border-2 border-slate-200 hover:border-emerald-400 hover:text-emerald-600 font-bold rounded-2xl shadow-lg transition-all flex items-center gap-2">
-                            <Icon name="cloud-download" size={16} /> DB에서 최신화
+                        <button onClick={() => loadFromDB(false)} disabled={isLoadingDb} className="px-3 py-1.5 text-sm bg-white text-slate-700 border-2 border-slate-200 hover:border-emerald-400 hover:text-emerald-600 font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+                            <Icon name="cloud-download" size={14} /> DB 최신화
                         </button>
                     )}
-                    <button onClick={() => setEditMode(!editMode)} className={`px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg transition-all ${editMode ? 'bg-indigo-600 text-white shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-blue-400'}`}>
-                        <Icon name={editMode ? 'check' : 'edit-3'} size={16} /> {editMode ? '편집 모드 완료' : '화면 편집 켜기'}
+                    <button onClick={() => setEditMode(!editMode)} className={`px-3 py-1.5 text-sm rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition-all ${editMode ? 'bg-indigo-600 text-white shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-blue-400'}`}>
+                        <Icon name={editMode ? 'check' : 'edit-3'} size={14} /> {editMode ? '편집 모드 완료' : '화면 편집 켜기'}
                     </button>
                 </div>
                 <div className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-full text-xs font-black tracking-widest uppercase mb-6 shadow-xl shadow-blue-200 mt-2">
@@ -530,8 +529,8 @@ const App = () => {
                         <span>장비별 하위 분류 및 모든 항목 편집 기능 장착 완료</span>
                     </div>
                     <div className="flex gap-4">
-                        <button onClick={exportToExcel} className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 transition-all text-sm shadow-md active:scale-95">
-                            <Icon name="download" size={16} /> 엑셀 파일 다운로드
+                        <button onClick={exportToExcel} className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all text-sm shadow-sm active:scale-95">
+                            <Icon name="download" size={14} /> 엑셀 파일 다운로드
                         </button>
                     </div>
                 </div>
