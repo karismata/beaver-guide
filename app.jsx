@@ -36,6 +36,7 @@ const App = () => {
 
     const [editMode, setEditMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [memoPosition, setMemoPosition] = useState('right');
     const [newItem, setNewItem] = useState("");
     const [modalState, setModalState] = useState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
     const [isLocalChange, setIsLocalChange] = useState(false);
@@ -276,7 +277,7 @@ const App = () => {
                 <p className="text-slate-400 font-bold text-lg">고객상담 스마트 가이드 & 메모 보드</p>
             </header>
 
-            <div className="w-full flex flex-col lg:flex-row gap-8 items-start justify-center flex-grow">
+            <div className={`w-full flex flex-col gap-8 items-start justify-center flex-grow ${memoPosition === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row'}`}>
                 {/* Main Content Area */}
                 <div className="w-full flex-1 flex justify-center min-w-0">
                     {activeStep === '__search__' ? (
@@ -459,57 +460,76 @@ const App = () => {
                 </div>
 
                 {/* Right Panel - Sticky Memo */}
-                <div className="w-full lg:w-[360px] flex-shrink-0 animate-fade-in relative z-10">
-                    <div className="sticky top-8 bg-white border-2 border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
-                        <div className="flex justify-between items-center mb-5">
-                            <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                                <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
-                            </h3>
-                            <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 hover:border-blue-600 active:scale-95">
-                                <Icon name="copy" size={14} /> 복사
+                {memoPosition !== 'hidden' && (
+                    <div className="w-full lg:w-[360px] flex-shrink-0 animate-fade-in relative z-10 transition-all duration-500">
+                        <div className="sticky top-8 bg-white border-2 border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
+                            <div className="flex justify-between items-center mb-5">
+                                <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                                    <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
+                                </h3>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => setMemoPosition(memoPosition === 'left' ? 'right' : 'left')}
+                                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                        title={memoPosition === 'left' ? '우측으로 이동' : '좌측으로 이동'}
+                                    >
+                                        <Icon name={memoPosition === 'left' ? 'panel-right' : 'panel-left'} size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setMemoPosition('hidden')}
+                                        className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                        title="메모 숨기기"
+                                    >
+                                        <Icon name="x" size={16} />
+                                    </button>
+                                    <div className="w-px h-4 bg-slate-200 mx-1"></div>
+                                    <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 hover:border-blue-600 active:scale-95 ml-1">
+                                        <Icon name="copy" size={14} /> 복사
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 mb-6">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">매장명</label>
+                                    <input value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">사업자번호</label>
+                                    <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">연락처</label>
+                                    <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">고객 문의내용</label>
+                                    <textarea value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl h-28 resize-none text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-slate-100 pt-5">
+                                <label className="block text-xs font-bold text-slate-500 mb-2">선택한 분류 경로</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {history.filter(h => h.tag && h.tag !== "상황 파악 완료").map((h, i) => (
+                                        <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100 flex items-center gap-1 shadow-sm"><Icon name="check" size={12} /> {h.tag}</span>
+                                    ))}
+                                    {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 mt-1">아직 선택된 분류가 없습니다.</span>}
+                                </div>
+                            </div>
+
+                            <button onClick={() => {
+                                if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
+                                    setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' });
+                                    setHistory([]);
+                                    setActiveStep('start');
+                                }
+                            }} className="w-full mt-6 py-3.5 bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 flex items-center justify-center gap-2 group shadow-sm">
+                                <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
                             </button>
                         </div>
-
-                        <div className="space-y-4 mb-6">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">매장명</label>
-                                <input value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 비버카페 강남점" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">사업자번호</label>
-                                <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">연락처</label>
-                                <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">고객 문의내용</label>
-                                <textarea value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl h-28 resize-none text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-slate-100 pt-5">
-                            <label className="block text-xs font-bold text-slate-500 mb-2">선택한 분류 경로</label>
-                            <div className="flex flex-wrap gap-2">
-                                {history.filter(h => h.tag && h.tag !== "상황 파악 완료").map((h, i) => (
-                                    <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100 flex items-center gap-1 shadow-sm"><Icon name="check" size={12} /> {h.tag}</span>
-                                ))}
-                                {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 mt-1">아직 선택된 분류가 없습니다.</span>}
-                            </div>
-                        </div>
-
-                        <button onClick={() => {
-                            if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
-                                setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' });
-                                setHistory([]);
-                                setActiveStep('start');
-                            }
-                        }} className="w-full mt-6 py-3.5 bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 flex items-center justify-center gap-2 group shadow-sm">
-                            <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
-                        </button>
                     </div>
-                </div>
+                )}
             </div>
 
             <footer className="mt-24 w-full border-t border-slate-200 pt-10">
@@ -579,6 +599,17 @@ const App = () => {
                         }} className="w-full mt-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/30 hover:bg-emerald-700 transition-colors">접속 정보 저장</button>
                     </div>
                 </div>
+            )}
+
+            {/* Memo Restore Floating Button */}
+            {memoPosition === 'hidden' && (
+                <button
+                    onClick={() => setMemoPosition('right')}
+                    className="fixed bottom-8 right-8 z-50 flex items-center gap-2 px-5 py-3.5 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all font-bold animate-fade-in group active:scale-95 hover:-translate-y-1"
+                >
+                    <span className="p-1 bg-white/20 rounded-full"><Icon name="edit-3" size={16} className="group-hover:rotate-12 transition-transform" /></span>
+                    상담 메모 열기
+                </button>
             )}
         </div>
     );
