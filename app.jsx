@@ -108,6 +108,7 @@ const App = () => {
                         dbContents[`info_${row.id}`] = {
                             isInfo: true,
                             title: `[H] ${row['키워드2'] || row['키워드']}`,
+                            programKey: row['키워드'] || '공통',
                             icon: "book-open",
                             type: "info",
                             list: [(row['내용'] || '').replace(/\/n/g, '\n').replace(/\\n/g, '\n').replace(/~n/g, '\n').replace(/NL/gi, '\n').replace(/␤/g, '\n')],
@@ -304,6 +305,20 @@ const App = () => {
                                     const searchLower = searchKeyword.toLowerCase();
                                     Object.keys(contents).forEach(k => {
                                         const c = contents[k];
+
+                                        // 한서치 데이터 필터링 로직: 선택된 장비 카테고리에 속한 정보만 노출
+                                        if (c.isInfo && c.programKey) {
+                                            const selectedPrograms = history.map(h => h.tag).filter(tag => tag && tag !== "상황 파악 완료");
+                                            if (selectedPrograms.length > 0) {
+                                                const isMatched = selectedPrograms.some(tag =>
+                                                    tag.includes(c.programKey) ||
+                                                    c.programKey === '공통' ||
+                                                    c.programKey.toLowerCase() === 'all'
+                                                );
+                                                if (!isMatched) return; // 일치하지 않으면 무시하고 다음 데이터로
+                                            }
+                                        }
+
                                         let titleMatched = false;
                                         if (c.title.toLowerCase().includes(searchLower)) {
                                             matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, isTitleMatch: true, image: c.image });
