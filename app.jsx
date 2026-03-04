@@ -313,8 +313,8 @@ const App = () => {
                 <div className="w-full flex-1 flex justify-center min-w-0">
                     {activeStep === '__search__' ? (
                         <div className="w-full max-w-3xl animate-fade-in">
-                            <div className="flex items-center gap-4 mb-6">
-                                <button onClick={goBack} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 dark:text-slate-600 rounded-xl hover:bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 transition-all font-bold flex items-center shadow-sm">
+                            <div className={`flex items-center gap-4 mb-6 ${memoPosition === 'left' ? 'justify-between flex-row-reverse' : 'justify-start'}`}>
+                                <button onClick={goBack} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all font-bold flex items-center shadow-sm">
                                     <Icon name="arrow-left" size={20} className="mr-2" /> 뒤로
                                 </button>
                                 <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-3">
@@ -484,6 +484,7 @@ const App = () => {
                             stepKey={activeStep}
                             data={contents[activeStep]}
                             categories={categories}
+                            memoPosition={memoPosition}
                             newItem={newItem}
                             setNewItem={setNewItem}
                             addItem={addItem}
@@ -508,14 +509,14 @@ const App = () => {
                 {memoPosition !== 'hidden' && (
                     <div className="w-full lg:w-[360px] flex-shrink-0 animate-fade-in relative z-10 transition-all duration-500">
                         <div className="sticky top-8 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
-                            <div className="flex justify-between items-center mb-5">
+                            <div className={`flex items-center justify-between mb-8 ${memoPosition === 'left' ? 'flex-row-reverse' : ''}`}>
                                 <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                     <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
                                 </h3>
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => setMemoPosition(memoPosition === 'left' ? 'right' : 'left')}
-                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
+                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                         title={memoPosition === 'left' ? '우측으로 이동' : '좌측으로 이동'}
                                     >
                                         <Icon name={memoPosition === 'left' ? 'panel-right' : 'panel-left'} size={16} />
@@ -537,19 +538,19 @@ const App = () => {
                             <div className="space-y-4 mb-6">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">매장명</label>
-                                    <input value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                    <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-bizNum')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">사업자번호</label>
-                                    <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                    <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-contact')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">연락처</label>
-                                    <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
+                                    <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">고객 문의내용</label>
-                                    <textarea value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-28 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
+                                    <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
                                 </div>
                             </div>
 

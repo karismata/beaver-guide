@@ -103,7 +103,7 @@ const Linkify = ({ text }) => {
     });
 };
 
-const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, removeItem, updateItem, moveOrCopyItem, onReset, onBack, defaultExpandedIdx }) => {
+const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewItem, addItem, removeItem, updateItem, moveOrCopyItem, onReset, onBack, defaultExpandedIdx }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [expandedIdx, setExpandedIdx] = useState(defaultExpandedIdx !== undefined ? defaultExpandedIdx : null);
 
@@ -164,7 +164,7 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
 
     return (
         <div className={`w-full max-w-2xl p-8 rounded-[2.5rem] border-2 ${data.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50 shadow-emerald-50 dark:shadow-emerald-900/20' : data.type === 'info' ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-900/50 shadow-indigo-50 dark:shadow-indigo-900/20' : 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50 shadow-rose-50 dark:shadow-rose-900/20'} shadow-2xl animate-fade-in`}>
-            <div className="flex gap-2 mb-6">
+            <div className={`flex gap-2 mb-6 ${memoPosition === 'left' ? 'justify-end' : 'justify-start'}`}>
                 <button onClick={onBack} className="px-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all font-bold flex items-center shadow-sm active:scale-95">
                     <Icon name="arrow-left" size={16} className="mr-2" /> 이전으로
                 </button>
