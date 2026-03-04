@@ -36,7 +36,9 @@ const App = () => {
 
     const [editMode, setEditMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [memoPosition, setMemoPosition] = useState('right');
+    const [memoPosition, setMemoPosition] = useState(() => {
+        return localStorage.getItem('cs_guide_memo_pos') || 'right';
+    });
     const [newItem, setNewItem] = useState("");
     const [modalState, setModalState] = useState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
     const [isLocalChange, setIsLocalChange] = useState(false);
@@ -46,6 +48,11 @@ const App = () => {
         ...Object.keys(steps).map(k => ({ id: k, type: 'step', title: steps[k].title })),
         ...Object.keys(contents).map(k => ({ id: k, type: 'result', title: contents[k].title }))
     ];
+
+    // Persist memo position
+    useEffect(() => {
+        localStorage.setItem('cs_guide_memo_pos', memoPosition);
+    }, [memoPosition]);
 
     // LocalStorage Save Effect (fallback)
     useEffect(() => {
