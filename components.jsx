@@ -163,12 +163,12 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
     };
 
     return (
-        <div className={`w-full max-w-2xl p-8 rounded-[2.5rem] border-2 ${data.type === 'success' ? 'bg-emerald-50 border-emerald-100 shadow-emerald-50' : data.type === 'info' ? 'bg-indigo-50 border-indigo-100 shadow-indigo-50' : 'bg-rose-50 border-rose-100 shadow-rose-50'} shadow-2xl animate-fade-in`}>
+        <div className={`w-full max-w-2xl p-8 rounded-[2.5rem] border-2 ${data.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50 shadow-emerald-50 dark:shadow-emerald-900/20' : data.type === 'info' ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-900/50 shadow-indigo-50 dark:shadow-indigo-900/20' : 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50 shadow-rose-50 dark:shadow-rose-900/20'} shadow-2xl animate-fade-in`}>
             <div className="flex gap-2 mb-6">
-                <button onClick={onBack} className="px-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 dark:text-slate-600 rounded-xl hover:bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 transition-all font-bold flex items-center shadow-sm active:scale-95">
+                <button onClick={onBack} className="px-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all font-bold flex items-center shadow-sm active:scale-95">
                     <Icon name="arrow-left" size={16} className="mr-2" /> 이전으로
                 </button>
-                <button onClick={onReset} className="px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-xl hover:bg-black transition-all font-bold flex items-center shadow-sm active:scale-95">
+                <button onClick={onReset} className="px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-xl hover:bg-black dark:hover:bg-slate-600 transition-all font-bold flex items-center shadow-sm active:scale-95">
                     <Icon name="rotate-ccw" size={16} className="mr-2" /> 처음으로
                 </button>
             </div>
@@ -179,7 +179,7 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
                         <div className={`p-4 rounded-2xl ${data.type === 'success' ? 'bg-emerald-500' : data.type === 'info' ? 'bg-indigo-500' : 'bg-rose-500'} text-white mr-4 shadow-lg shadow-current/20`}>
                             <Icon name={data.icon} size={32} />
                         </div>
-                        <h3 className={`text-2xl font-black tracking-tight ${data.type === 'success' ? 'text-emerald-900' : data.type === 'info' ? 'text-indigo-900' : 'text-rose-900'}`}>{data.title}</h3>
+                        <h3 className={`text-2xl font-black tracking-tight ${data.type === 'success' ? 'text-emerald-900 dark:text-emerald-400' : data.type === 'info' ? 'text-indigo-900 dark:text-indigo-400' : 'text-rose-900 dark:text-rose-400'}`}>{data.title}</h3>
                     </div>
                 </div>
 
@@ -228,7 +228,7 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     onClick={cancelEdit}
-                                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:text-slate-500 rounded-lg font-bold hover:bg-slate-200 transition-all text-sm"
+                                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg font-bold hover:bg-slate-200 transition-all text-sm"
                                                 >
                                                     취소
                                                 </button>
@@ -242,7 +242,7 @@ const ResultCard = ({ stepKey, data, categories, newItem, setNewItem, addItem, r
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-4">
-                                            <p className="text-slate-600 dark:text-slate-300 dark:text-slate-600 font-medium whitespace-pre-line pb-2 leading-relaxed">
+                                            <p className="text-slate-600 dark:text-slate-300 font-medium whitespace-pre-line pb-2 leading-relaxed">
                                                 <Linkify text={item} />
                                             </p>
                                             {data.image && originalIdx === 0 && (
