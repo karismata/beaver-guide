@@ -386,7 +386,7 @@ const App = () => {
                             </div>
                         </div>
                     ) : steps[activeStep] ? (
-                        <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined}>
+                        <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined} memoPosition={memoPosition}>
                             {(activeStep === 'start' || activeStep.includes('category')) && (
                                 <div className="w-full max-w-3xl mb-8 relative">
                                     <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={20} />

@@ -31,13 +31,15 @@ const Icon = ({ name, size = 24, className = "" }) => {
     return <span ref={ref} className="inline-flex items-center justify-center flex-shrink-0" />;
 };
 
-const Step = ({ title, description, children, icon, color = "blue", onBack }) => (
+const Step = ({ title, description, children, icon, color = "blue", onBack, memoPosition }) => (
     <div className="flex flex-col items-center animate-fade-in text-center relative w-full">
         {onBack && (
-            <button onClick={onBack} className="absolute -top-12 left-0 flex items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-blue-600 font-bold transition-colors group">
-                <Icon name="arrow-left" size={18} className="group-hover:-translate-x-1 transition-transform" />
-                <span>이전으로</span>
-            </button>
+            <div className={`w-full max-w-lg mb-6 flex ${memoPosition === 'left' ? 'justify-end' : 'justify-start'}`}>
+                <button onClick={onBack} className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-slate-700 font-bold rounded-xl transition-all shadow-sm active:scale-95 group">
+                    <Icon name="arrow-left" size={18} className="group-hover:-translate-x-1 transition-transform" />
+                    <span>이전으로</span>
+                </button>
+            </div>
         )}
         <div className={`w-20 h-20 rounded-full bg-${color}-100 flex items-center justify-center mb-6 border-4 border-white shadow-xl`}>
             <Icon name={icon} size={40} className={`text-${color}-600`} />
