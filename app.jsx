@@ -36,6 +36,9 @@ const App = () => {
 
     const [editMode, setEditMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        return localStorage.getItem('cs_guide_dark_mode') === 'true';
+    });
     const [memoPosition, setMemoPosition] = useState(() => {
         return localStorage.getItem('cs_guide_memo_pos') || 'right';
     });
@@ -53,6 +56,17 @@ const App = () => {
     useEffect(() => {
         localStorage.setItem('cs_guide_memo_pos', memoPosition);
     }, [memoPosition]);
+
+    // Apply and Persist dark mode
+    useEffect(() => {
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+            // document.body.classList.add('bg-slate-900'); // set globally if not overridden
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('cs_guide_dark_mode', isDarkMode);
+    }, [isDarkMode]);
 
     // LocalStorage Save Effect (fallback)
     useEffect(() => {
@@ -277,12 +291,21 @@ const App = () => {
     return (
         <div className="min-h-screen py-10 px-4 flex flex-col items-center max-w-[1200px] mx-auto">
             {/* 공통 헤더 */}
-            <header className="mb-14 text-center animate-fade-in relative w-full">
+            <header className="mb-14 text-center animate-fade-in relative w-full pt-4">
+                <div className="absolute right-0 top-0 flex items-center gap-2">
+                    <button
+                        onClick={() => setIsDarkMode(!isDarkMode)}
+                        className="p-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-xl transition-all shadow-sm flex items-center gap-2 font-bold text-sm"
+                        title="다크모드 전환"
+                    >
+                        <Icon name={isDarkMode ? 'sun' : 'moon'} size={16} />
+                    </button>
+                </div>
                 <div className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-full text-xs font-black tracking-widest uppercase mb-6 shadow-xl shadow-blue-200 mt-2">
                     <Icon name="headset" size={14} /> Technical Support Team
                 </div>
-                <h1 className="text-5xl font-black text-slate-900 mb-4 tracking-tighter italic">RESPONSE <span className="text-blue-600">GUIDE</span></h1>
-                <p className="text-slate-400 font-bold text-lg">고객상담 스마트 가이드 & 메모 보드</p>
+                <h1 className="text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter italic">RESPONSE <span className="text-blue-600">GUIDE</span></h1>
+                <p className="text-slate-400 dark:text-slate-500 font-bold text-lg">고객상담 스마트 가이드 & 메모 보드</p>
             </header>
 
             <div className={`w-full flex flex-col gap-8 items-start justify-center flex-grow ${memoPosition === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row'}`}>
@@ -291,10 +314,10 @@ const App = () => {
                     {activeStep === '__search__' ? (
                         <div className="w-full max-w-3xl animate-fade-in">
                             <div className="flex items-center gap-4 mb-6">
-                                <button onClick={goBack} className="p-3 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-bold flex items-center shadow-sm">
+                                <button onClick={goBack} className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 dark:text-slate-600 rounded-xl hover:bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 transition-all font-bold flex items-center shadow-sm">
                                     <Icon name="arrow-left" size={20} className="mr-2" /> 뒤로
                                 </button>
-                                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-3">
                                     <div className="p-2 bg-blue-100 text-blue-600 rounded-xl"><Icon name="search" size={24} /></div>
                                     "{searchKeyword}" 검색 결과 모아보기
                                 </h2>
@@ -332,30 +355,30 @@ const App = () => {
                                     });
 
                                     if (matches.length === 0) {
-                                        return <div className="text-center p-12 bg-white rounded-3xl border-2 border-dashed border-slate-200 shadow-sm"><Icon name="search-x" size={48} className="mx-auto text-slate-300 mb-4" /><p className="text-slate-500 font-bold text-lg">일치하는 결과가 없습니다.</p></div>;
+                                        return <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-sm"><Icon name="search-x" size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" /><p className="text-slate-500 dark:text-slate-400 dark:text-slate-500 font-bold text-lg">일치하는 결과가 없습니다.</p></div>;
                                     }
 
                                     return matches.map((m, i) => (
-                                        <div key={i} className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
+                                        <div key={i} className="bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
                                             <div className="flex items-center gap-3 mb-3">
                                                 <span className={`p-2 rounded-xl transition-colors ${m.type === 'success' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' : m.type === 'info' ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100'}`}>
                                                     <Icon name={m.icon} size={20} />
                                                 </span>
-                                                <span className="font-black text-slate-800 text-xl group-hover:text-blue-600 transition-colors">{m.title}</span>
+                                                <span className="font-black text-slate-800 dark:text-slate-100 text-xl group-hover:text-blue-600 transition-colors">{m.title}</span>
                                             </div>
                                             {m.item ? (
                                                 <div className="pl-14">
-                                                    <p className="text-slate-600 font-medium whitespace-pre-line leading-relaxed line-clamp-4">
+                                                    <p className="text-slate-600 dark:text-slate-300 dark:text-slate-600 font-medium whitespace-pre-line leading-relaxed line-clamp-4">
                                                         {m.item}
                                                     </p>
                                                     {m.image && m.matchIdx === 0 && (
-                                                        <div className="mt-4 rounded-xl overflow-hidden border border-slate-200">
-                                                            <img src={m.image} className="w-full max-h-48 object-cover bg-slate-50" alt="첨부 이미지" />
+                                                        <div className="mt-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                                                            <img src={m.image} className="w-full max-h-48 object-cover bg-slate-50 dark:bg-slate-900 dark:bg-slate-700" alt="첨부 이미지" />
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : (
-                                                <p className="pl-14 text-slate-400 text-sm font-bold italic">문서 제목이 검색어와 일치합니다.</p>
+                                                <p className="pl-14 text-slate-400 dark:text-slate-500 text-sm font-bold italic">문서 제목이 검색어와 일치합니다.</p>
                                             )}
                                         </div>
                                     ));
@@ -366,7 +389,7 @@ const App = () => {
                         <Step title={steps[activeStep].title} icon={steps[activeStep].icon} description={steps[activeStep].description} onBack={activeStep !== 'start' ? goBack : undefined}>
                             {(activeStep === 'start' || activeStep.includes('category')) && (
                                 <div className="w-full max-w-3xl mb-8 relative">
-                                    <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                    <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={20} />
                                     <input
                                         type="text"
                                         placeholder="어떤 문제가 발생했나요? (검색어 입력 후 Enter)"
@@ -377,10 +400,10 @@ const App = () => {
                                                 navigateTo('__search__', `검색: ${searchKeyword}`);
                                             }
                                         }}
-                                        className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-bold text-slate-700 bg-white"
+                                        className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800"
                                     />
                                     {searchKeyword.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20 max-h-80 overflow-y-auto custom-scrollbar">
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden z-20 max-h-80 overflow-y-auto custom-scrollbar">
                                             {(() => {
                                                 const getScopeContentKeys = (stepKey) => {
                                                     const keys = new Set();
@@ -407,19 +430,19 @@ const App = () => {
                                                 );
 
                                                 if (results.length === 0) {
-                                                    return <div className="p-4 text-center text-slate-500 text-sm font-bold">검색 결과가 없습니다.</div>;
+                                                    return <div className="p-4 text-center text-slate-500 dark:text-slate-400 dark:text-slate-500 text-sm font-bold">검색 결과가 없습니다.</div>;
                                                 }
 
                                                 return results.map(k => {
                                                     const matchIdx = contents[k].list.findIndex(item => item.includes(searchKeyword));
                                                     return (
-                                                        <button key={k} onClick={() => { setSearchKeyword(''); navigateTo(k, `검색결과: ${contents[k].title}`, matchIdx !== -1 ? matchIdx : 0); }} className="w-full text-left p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex items-start gap-3 transition-colors">
+                                                        <button key={k} onClick={() => { setSearchKeyword(''); navigateTo(k, `검색결과: ${contents[k].title}`, matchIdx !== -1 ? matchIdx : 0); }} className="w-full text-left p-4 hover:bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-start gap-3 transition-colors">
                                                             <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl flex-shrink-0">
                                                                 <Icon name={contents[k].icon} size={16} />
                                                             </span>
                                                             <div>
-                                                                <div className="font-bold text-slate-800 mb-1">{contents[k].title}</div>
-                                                                <div className="text-xs text-slate-500 line-clamp-2">{contents[k].list[matchIdx !== -1 ? matchIdx : 0]?.split('\n')[0] || '내용 없음'}</div>
+                                                                <div className="font-bold text-slate-800 dark:text-slate-100 mb-1">{contents[k].title}</div>
+                                                                <div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500 line-clamp-2">{contents[k].list[matchIdx !== -1 ? matchIdx : 0]?.split('\n')[0] || '내용 없음'}</div>
                                                             </div>
                                                         </button>
                                                     );
@@ -450,7 +473,7 @@ const App = () => {
                                     />
                                 ))}
                                 {editMode && (
-                                    <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
+                                    <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 dark:text-slate-400 dark:text-slate-500 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
                                         <Icon name="plus" size={24} /> <span>선택지 추가하기</span>
                                     </button>
                                 )}
@@ -474,8 +497,8 @@ const App = () => {
                     ) : (
                         <div className="text-center py-20">
                             <Icon name="alert-triangle" size={48} className="mx-auto text-rose-500 mb-4" />
-                            <h2 className="text-2xl font-bold text-slate-800">오류가 발생했습니다</h2>
-                            <p className="text-slate-500 mt-2">해당 화면(ID: {activeStep})을 찾을 수 없습니다.</p>
+                            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">오류가 발생했습니다</h2>
+                            <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500 mt-2">해당 화면(ID: {activeStep})을 찾을 수 없습니다.</p>
                             <button onClick={goBack} className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">뒤로가기</button>
                         </div>
                     )}
@@ -484,28 +507,28 @@ const App = () => {
                 {/* Right Panel - Sticky Memo */}
                 {memoPosition !== 'hidden' && (
                     <div className="w-full lg:w-[360px] flex-shrink-0 animate-fade-in relative z-10 transition-all duration-500">
-                        <div className="sticky top-8 bg-white border-2 border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
+                        <div className="sticky top-8 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50">
                             <div className="flex justify-between items-center mb-5">
-                                <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                     <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
                                 </h3>
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => setMemoPosition(memoPosition === 'left' ? 'right' : 'left')}
-                                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
                                         title={memoPosition === 'left' ? '우측으로 이동' : '좌측으로 이동'}
                                     >
                                         <Icon name={memoPosition === 'left' ? 'panel-right' : 'panel-left'} size={16} />
                                     </button>
                                     <button
                                         onClick={() => setMemoPosition('hidden')}
-                                        className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                                         title="메모 숨기기"
                                     >
                                         <Icon name="x" size={16} />
                                     </button>
                                     <div className="w-px h-4 bg-slate-200 mx-1"></div>
-                                    <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 hover:border-blue-600 active:scale-95 ml-1">
+                                    <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-600 active:scale-95 ml-1">
                                         <Icon name="copy" size={14} /> 복사
                                     </button>
                                 </div>
@@ -513,30 +536,30 @@ const App = () => {
 
                             <div className="space-y-4 mb-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">매장명</label>
-                                    <input value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">매장명</label>
+                                    <input value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">사업자번호</label>
-                                    <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">사업자번호</label>
+                                    <input value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">연락처</label>
-                                    <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">연락처</label>
+                                    <input value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">고객 문의내용</label>
-                                    <textarea value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl h-28 resize-none text-slate-800 placeholder:text-slate-300 transition-colors focus:border-blue-400 focus:bg-white focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">고객 문의내용</label>
+                                    <textarea value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-28 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
                                 </div>
                             </div>
 
-                            <div className="border-t border-slate-100 pt-5">
-                                <label className="block text-xs font-bold text-slate-500 mb-2">선택한 분류 경로</label>
+                            <div className="border-t border-slate-100 dark:border-slate-800 pt-5">
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2">선택한 분류 경로</label>
                                 <div className="flex flex-wrap gap-2">
                                     {history.filter(h => h.tag && h.tag !== "상황 파악 완료").map((h, i) => (
                                         <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100 flex items-center gap-1 shadow-sm"><Icon name="check" size={12} /> {h.tag}</span>
                                     ))}
-                                    {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 mt-1">아직 선택된 분류가 없습니다.</span>}
+                                    {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 dark:text-slate-500 mt-1">아직 선택된 분류가 없습니다.</span>}
                                 </div>
                             </div>
 
@@ -546,7 +569,7 @@ const App = () => {
                                     setHistory([]);
                                     setActiveStep('start');
                                 }
-                            }} className="w-full mt-6 py-3.5 bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 flex items-center justify-center gap-2 group shadow-sm">
+                            }} className="w-full mt-6 py-3.5 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 text-slate-500 dark:text-slate-400 dark:text-slate-500 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 group shadow-sm">
                                 <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
                             </button>
                         </div>
@@ -554,22 +577,22 @@ const App = () => {
                 )}
             </div>
 
-            <footer className="mt-24 w-full border-t border-slate-200 pt-10">
+            <footer className="mt-24 w-full border-t border-slate-200 dark:border-slate-700 pt-10">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-4 text-slate-400 font-bold text-sm">
+                    <div className="flex items-center gap-4 text-slate-400 dark:text-slate-500 font-bold text-sm">
                         <Icon name="info" size={16} />
                         <span>장비별 하위 분류 및 모든 항목 편집 기능 장착 완료</span>
                     </div>
                     <div className="flex gap-4 relative">
                         {isMenuOpen && (
-                            <div className="absolute bottom-full right-0 mb-4 bg-white border-2 border-slate-100 rounded-3xl p-5 shadow-2xl flex flex-col gap-3 min-w-[240px] animate-fade-in z-50 origin-bottom-right">
-                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2 mb-1">관리자 도구</h4>
+                            <div className="absolute bottom-full right-0 mb-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col gap-3 min-w-[240px] animate-fade-in z-50 origin-bottom-right">
+                                <h4 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">관리자 도구</h4>
                                 {supabase && (
-                                    <button onClick={() => { loadFromDB(false); setIsMenuOpen(false); }} disabled={isLoadingDb} className="w-full px-4 py-3.5 text-sm bg-white text-slate-700 border-2 border-slate-100 hover:border-emerald-400 hover:text-emerald-600 font-bold rounded-xl transition-all flex items-center gap-2.5 text-left active:scale-95 shadow-sm hover:shadow-md">
+                                    <button onClick={() => { loadFromDB(false); setIsMenuOpen(false); }} disabled={isLoadingDb} className="w-full px-4 py-3.5 text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-2 border-slate-100 dark:border-slate-800 hover:border-emerald-400 hover:text-emerald-600 font-bold rounded-xl transition-all flex items-center gap-2.5 text-left active:scale-95 shadow-sm hover:shadow-md">
                                         <Icon name="cloud-download" size={16} /> DB 최신화
                                     </button>
                                 )}
-                                <button onClick={() => { setEditMode(!editMode); setIsMenuOpen(false); }} className={`w-full px-4 py-3.5 text-sm rounded-xl font-bold flex items-center gap-2.5 transition-all active:scale-95 shadow-sm hover:shadow-md ${editMode ? 'bg-indigo-600 text-white border-2 border-indigo-600 hover:bg-indigo-700 shadow-indigo-600/30' : 'bg-white text-slate-700 border-2 border-slate-100 hover:border-blue-400 hover:text-blue-600'}`}>
+                                <button onClick={() => { setEditMode(!editMode); setIsMenuOpen(false); }} className={`w-full px-4 py-3.5 text-sm rounded-xl font-bold flex items-center gap-2.5 transition-all active:scale-95 shadow-sm hover:shadow-md ${editMode ? 'bg-indigo-600 text-white border-2 border-indigo-600 hover:bg-indigo-700 shadow-indigo-600/30' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-2 border-slate-100 dark:border-slate-800 hover:border-blue-400 hover:text-blue-600'}`}>
                                     <Icon name={editMode ? 'check' : 'edit-3'} size={16} /> {editMode ? '편집 모드 종료' : '화면 편집 켜기'}
                                 </button>
                                 <button onClick={() => { exportToExcel(); setIsMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-3.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all text-sm shadow-sm hover:shadow-md active:scale-95">
@@ -579,7 +602,7 @@ const App = () => {
                         )}
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className={`p-3 rounded-xl transition-all shadow-sm border-2 block ${isMenuOpen ? 'bg-slate-800 text-white border-slate-800 shadow-lg' : 'bg-white text-slate-400 border-slate-200 hover:text-slate-700 hover:border-slate-300'}`}
+                            className={`p-3 rounded-xl transition-all shadow-sm border-2 block ${isMenuOpen ? 'bg-slate-800 text-white border-slate-800 shadow-lg' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:text-slate-700 dark:text-slate-200 hover:border-slate-300'}`}
                             title="관리자 도구 열기"
                         >
                             <Icon name="settings" size={20} />
@@ -598,20 +621,20 @@ const App = () => {
 
             {/* Supabase 설정 모달 */}
             {isSbModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 relative">
-                        <button onClick={() => setIsSbModalOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><Icon name="x" size={24} /></button>
-                        <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2"><Icon name="database" size={24} className="text-emerald-500" /> Database 연결 연결</h2>
-                        <p className="text-slate-500 text-sm font-medium mb-6">Supabase URL과 Anon Key를 입력하면 모든 데이터가 데이터베이스에 저장되고 실시간으로 공유됩니다.</p>
+                <div className="fixed inset-0 bg-slate-900 dark:bg-slate-700/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-md p-8 relative">
+                        <button onClick={() => setIsSbModalOpen(false)} className="absolute top-6 right-6 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 dark:text-slate-600"><Icon name="x" size={24} /></button>
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2"><Icon name="database" size={24} className="text-emerald-500" /> Database 연결 연결</h2>
+                        <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500 text-sm font-medium mb-6">Supabase URL과 Anon Key를 입력하면 모든 데이터가 데이터베이스에 저장되고 실시간으로 공유됩니다.</p>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Project URL</label>
-                                <input value={sbConfig.url} onChange={e => setSbConfig({ ...sbConfig, url: e.target.value })} className="w-full p-4 border-2 border-slate-200 rounded-2xl text-slate-800 font-mono text-sm focus:border-emerald-500 outline-none" placeholder="https://xxxx.supabase.co" />
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Project URL</label>
+                                <input value={sbConfig.url} onChange={e => setSbConfig({ ...sbConfig, url: e.target.value })} className="w-full p-4 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 font-mono text-sm focus:border-emerald-500 outline-none" placeholder="https://xxxx.supabase.co" />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Project API Key (anon/public)</label>
-                                <input value={sbConfig.key} onChange={e => setSbConfig({ ...sbConfig, key: e.target.value })} className="w-full p-4 border-2 border-slate-200 rounded-2xl text-slate-800 font-mono text-sm focus:border-emerald-500 outline-none" placeholder="eyJhbG..." />
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Project API Key (anon/public)</label>
+                                <input value={sbConfig.key} onChange={e => setSbConfig({ ...sbConfig, key: e.target.value })} className="w-full p-4 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 font-mono text-sm focus:border-emerald-500 outline-none" placeholder="eyJhbG..." />
                             </div>
                         </div>
                         <button onClick={() => {
@@ -627,9 +650,9 @@ const App = () => {
             {memoPosition === 'hidden' && (
                 <button
                     onClick={() => setMemoPosition('right')}
-                    className="fixed bottom-8 right-8 z-50 flex items-center gap-2 px-5 py-3.5 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all font-bold animate-fade-in group active:scale-95 hover:-translate-y-1"
+                    className="fixed bottom-8 right-8 z-50 flex items-center gap-2 px-5 py-3.5 bg-slate-900 dark:bg-slate-700 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all font-bold animate-fade-in group active:scale-95 hover:-translate-y-1"
                 >
-                    <span className="p-1 bg-white/20 rounded-full"><Icon name="edit-3" size={16} className="group-hover:rotate-12 transition-transform" /></span>
+                    <span className="p-1 bg-white dark:bg-slate-800/20 rounded-full"><Icon name="edit-3" size={16} className="group-hover:rotate-12 transition-transform" /></span>
                     상담 메모 열기
                 </button>
             )}
