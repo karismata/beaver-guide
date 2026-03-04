@@ -43,7 +43,7 @@ const Step = ({ title, description, children, icon, color = "blue", onBack }) =>
             <Icon name={icon} size={40} className={`text-${color}-600`} />
         </div>
         <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-3 tracking-tight">{title}</h2>
-        <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-10 max-w-lg leading-relaxed whitespace-pre-line text-lg font-medium">{description}</p>
+        <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-lg leading-relaxed whitespace-pre-line text-lg font-medium">{description}</p>
         <div className="grid grid-cols-1 gap-4 w-full max-w-md">
             {children}
         </div>
@@ -71,9 +71,9 @@ const ChoiceButton = ({ label, onClick, sublabel, icon, color = "blue", editMode
                             <span className="text-xl block">{label}</span>
                         )}
                     </div>
-                    {sublabel && <span className="text-sm text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:text-slate-400 dark:text-slate-500">{sublabel}</span>}
+                    {sublabel && <span className="text-sm text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:text-slate-400">{sublabel}</span>}
                 </div>
-                {icon && <Icon name={icon} size={28} className={`text-slate-300 dark:text-slate-600 group-hover:text-${color}-500 transition-colors ml-3 flex-shrink-0`} />}
+                {icon && <Icon name={icon} size={28} className={`text-slate-300 dark:text-slate-400 group-hover:text-${color}-500 transition-colors ml-3 flex-shrink-0`} />}
                 <div className={`absolute bottom-0 left-0 h-1.5 w-0 bg-${color}-500 transition-all duration-300 group-hover:w-full`}></div>
             </button>
             {editMode && (
@@ -212,7 +212,7 @@ const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewIt
                                 <span className="flex-grow text-slate-700 dark:text-slate-200 font-bold text-lg truncate">
                                     {item.split('\n')[0]}
                                 </span>
-                                <Icon name="chevron-down" size={18} className={`text-slate-300 dark:text-slate-600 transition-transform ${expandedIdx === originalIdx ? 'rotate-180' : ''}`} />
+                                <Icon name="chevron-down" size={18} className={`text-slate-300 dark:text-slate-400 transition-transform ${expandedIdx === originalIdx ? 'rotate-180' : ''}`} />
                             </div>
 
                             <div className="accordion-content px-4 sm:px-12">
@@ -294,7 +294,7 @@ const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewIt
                         onChange={(e) => setNewItem(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addItem(stepKey)}
                         placeholder="새로운 대응 지침 추가..."
-                        className="w-full p-4 pr-16 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl focus:border-blue-500 focus:outline-none font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:text-slate-600 shadow-sm"
+                        className="w-full p-4 pr-16 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl focus:border-blue-500 focus:outline-none font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-500 shadow-sm"
                     />
                     <button
                         onClick={() => addItem(stepKey)}
@@ -311,7 +311,7 @@ const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewIt
                         <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-100">
                             <Icon name="copy" className="text-blue-500" /> 지침 이동 및 복사
                         </h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-600 mb-6 truncate bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 p-3 rounded-xl font-medium">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 truncate bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 p-3 rounded-xl font-medium">
                             {actionModal.itemText.split('\n')[0]}
                         </p>
 
@@ -345,7 +345,7 @@ const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewIt
                         </div>
 
                         <div className="flex gap-3">
-                            <button onClick={() => setActionModal({ isOpen: false })} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition-colors">취소</button>
+                            <button onClick={() => setActionModal({ isOpen: false })} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-2xl font-bold hover:bg-slate-200 transition-colors">취소</button>
                             <button
                                 onClick={handleActionSubmit}
                                 className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-colors"
@@ -437,7 +437,7 @@ const ChoiceEditModal = ({ isOpen, onClose, choiceData, onSave, allTargets }) =>
                 </div>
 
                 <div className="flex gap-3">
-                    <button onClick={onClose} className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:text-slate-500 rounded-xl font-bold hover:bg-slate-200 transition-colors">취소</button>
+                    <button onClick={onClose} className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl font-bold hover:bg-slate-200 transition-colors">취소</button>
                     <button onClick={() => {
                         let finalTarget = formData.target;
                         let createNew = null;

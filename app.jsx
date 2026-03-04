@@ -355,7 +355,7 @@ const App = () => {
                                     });
 
                                     if (matches.length === 0) {
-                                        return <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-sm"><Icon name="search-x" size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" /><p className="text-slate-500 dark:text-slate-400 dark:text-slate-500 font-bold text-lg">일치하는 결과가 없습니다.</p></div>;
+                                        return <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-sm"><Icon name="search-x" size={48} className="mx-auto text-slate-300 dark:text-slate-400 mb-4" /><p className="text-slate-500 dark:text-slate-400 font-bold text-lg">일치하는 결과가 없습니다.</p></div>;
                                     }
 
                                     return matches.map((m, i) => (
@@ -368,7 +368,7 @@ const App = () => {
                                             </div>
                                             {m.item ? (
                                                 <div className="pl-14">
-                                                    <p className="text-slate-600 dark:text-slate-300 dark:text-slate-600 font-medium whitespace-pre-line leading-relaxed line-clamp-4">
+                                                    <p className="text-slate-600 dark:text-slate-300 font-medium whitespace-pre-line leading-relaxed line-clamp-4">
                                                         {m.item}
                                                     </p>
                                                     {m.image && m.matchIdx === 0 && (
@@ -430,7 +430,7 @@ const App = () => {
                                                 );
 
                                                 if (results.length === 0) {
-                                                    return <div className="p-4 text-center text-slate-500 dark:text-slate-400 dark:text-slate-500 text-sm font-bold">검색 결과가 없습니다.</div>;
+                                                    return <div className="p-4 text-center text-slate-500 dark:text-slate-400 text-sm font-bold">검색 결과가 없습니다.</div>;
                                                 }
 
                                                 return results.map(k => {
@@ -442,7 +442,7 @@ const App = () => {
                                                             </span>
                                                             <div>
                                                                 <div className="font-bold text-slate-800 dark:text-slate-100 mb-1">{contents[k].title}</div>
-                                                                <div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500 line-clamp-2">{contents[k].list[matchIdx !== -1 ? matchIdx : 0]?.split('\n')[0] || '내용 없음'}</div>
+                                                                <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{contents[k].list[matchIdx !== -1 ? matchIdx : 0]?.split('\n')[0] || '내용 없음'}</div>
                                                             </div>
                                                         </button>
                                                     );
@@ -473,7 +473,7 @@ const App = () => {
                                     />
                                 ))}
                                 {editMode && (
-                                    <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 dark:text-slate-400 dark:text-slate-500 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
+                                    <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 dark:text-slate-400 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
                                         <Icon name="plus" size={24} /> <span>선택지 추가하기</span>
                                     </button>
                                 )}
@@ -499,7 +499,7 @@ const App = () => {
                         <div className="text-center py-20">
                             <Icon name="alert-triangle" size={48} className="mx-auto text-rose-500 mb-4" />
                             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">오류가 발생했습니다</h2>
-                            <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500 mt-2">해당 화면(ID: {activeStep})을 찾을 수 없습니다.</p>
+                            <p className="text-slate-500 dark:text-slate-400 mt-2">해당 화면(ID: {activeStep})을 찾을 수 없습니다.</p>
                             <button onClick={goBack} className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">뒤로가기</button>
                         </div>
                     )}
@@ -516,7 +516,7 @@ const App = () => {
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => setMemoPosition(memoPosition === 'left' ? 'right' : 'left')}
-                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                         title={memoPosition === 'left' ? '우측으로 이동' : '좌측으로 이동'}
                                     >
                                         <Icon name={memoPosition === 'left' ? 'panel-right' : 'panel-left'} size={16} />
@@ -529,7 +529,7 @@ const App = () => {
                                         <Icon name="x" size={16} />
                                     </button>
                                     <div className="w-px h-4 bg-slate-200 mx-1"></div>
-                                    <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-600 active:scale-95 ml-1">
+                                    <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-600 active:scale-95 ml-1">
                                         <Icon name="copy" size={14} /> 복사
                                     </button>
                                 </div>
@@ -537,25 +537,25 @@ const App = () => {
 
                             <div className="space-y-4 mb-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">매장명</label>
-                                    <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-bizNum')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명</label>
+                                    <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-bizNum')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">사업자번호</label>
-                                    <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-contact')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호</label>
+                                    <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-contact')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">연락처</label>
-                                    <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">연락처</label>
+                                    <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-1">고객 문의내용</label>
-                                    <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:text-slate-600 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">고객 문의내용</label>
+                                    <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
                                 </div>
                             </div>
 
                             <div className="border-t border-slate-100 dark:border-slate-800 pt-5">
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-2">선택한 분류 경로</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">선택한 분류 경로</label>
                                 <div className="flex flex-wrap gap-2">
                                     {history.filter(h => h.tag && h.tag !== "상황 파악 완료").map((h, i) => (
                                         <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100 flex items-center gap-1 shadow-sm"><Icon name="check" size={12} /> {h.tag}</span>
@@ -570,7 +570,7 @@ const App = () => {
                                     setHistory([]);
                                     setActiveStep('start');
                                 }
-                            }} className="w-full mt-6 py-3.5 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 text-slate-500 dark:text-slate-400 dark:text-slate-500 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 group shadow-sm">
+                            }} className="w-full mt-6 py-3.5 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 group shadow-sm">
                                 <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
                             </button>
                         </div>
@@ -624,9 +624,9 @@ const App = () => {
             {isSbModalOpen && (
                 <div className="fixed inset-0 bg-slate-900 dark:bg-slate-700/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-md p-8 relative">
-                        <button onClick={() => setIsSbModalOpen(false)} className="absolute top-6 right-6 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 dark:text-slate-600"><Icon name="x" size={24} /></button>
+                        <button onClick={() => setIsSbModalOpen(false)} className="absolute top-6 right-6 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300"><Icon name="x" size={24} /></button>
                         <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2"><Icon name="database" size={24} className="text-emerald-500" /> Database 연결 연결</h2>
-                        <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500 text-sm font-medium mb-6">Supabase URL과 Anon Key를 입력하면 모든 데이터가 데이터베이스에 저장되고 실시간으로 공유됩니다.</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-6">Supabase URL과 Anon Key를 입력하면 모든 데이터가 데이터베이스에 저장되고 실시간으로 공유됩니다.</p>
 
                         <div className="space-y-4">
                             <div>
