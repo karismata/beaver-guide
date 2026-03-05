@@ -3,7 +3,7 @@ const { useState, useEffect, useMemo } = React;
 const App = () => {
     const [activeStep, setActiveStep] = useState('start');
     const [history, setHistory] = useState([]);
-    const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', contact: '', issue: '' });
+    const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
     const [searchKeyword, setSearchKeyword] = useState('');
     const [isMemoSearch, setIsMemoSearch] = useState(false);
 
@@ -311,8 +311,66 @@ const App = () => {
     };
 
     const handleCopyMemo = () => {
-        const copyText = `매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n문의내용: ${memoData.issue || '미입력'}`;
+        const copyText = `매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n이용솔루션: ${memoData.usedSolution || '미입력'}\n문의내용: ${memoData.issue || '미입력'}`;
         navigator.clipboard.writeText(copyText).catch(err => console.error('복사 실패:', err));
+    };
+
+    const handleSearchStore = async () => {
+        if (!supabase) {
+            alert("Supabase 데이터베이스가 연결되어 있지 않습니다. 관리자 도구에서 연결해주세요.");
+            return;
+        }
+        const bn = memoData.bizNum.replace(/[^0-9]/g, '');
+        if (bn.length < 10) {
+            alert("정확한 사업자 번호(10자리)를 입력해주세요.");
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase.from('store_directory').select('*').eq('biz_num', bn).single();
+            if (error || !data) {
+                alert("DB에 매장 정보가 없습니다. 매장명과 솔루션을 입력 후 저장 버튼을 눌러주세요.");
+            } else {
+                setMemoData(prev => ({
+                    ...prev,
+                    storeName: data.store_name || prev.storeName,
+                    usedSolution: data.used_solution || prev.usedSolution,
+                }));
+                alert(`[${data.store_name}] 매장 정보를 불러왔습니다!`);
+            }
+        } catch (e) {
+            alert("DB에 매장 정보가 없습니다. 매장명과 솔루션을 입력 후 저장 버튼을 눌러주세요.");
+        }
+    };
+
+    const handleSaveStore = async () => {
+        if (!supabase) {
+            alert("Supabase 데이터베이스가 연결되어 있지 않습니다.");
+            return;
+        }
+        const bn = memoData.bizNum.replace(/[^0-9]/g, '');
+        if (bn.length < 10) {
+            alert("정확한 사업자 번호(10자리)를 입력해주세요.");
+            return;
+        }
+        if (!memoData.storeName.trim()) {
+            alert("저장할 매장명을 입력해주세요.");
+            return;
+        }
+
+        try {
+            const { error } = await supabase.from('store_directory').upsert({
+                biz_num: bn,
+                store_name: memoData.storeName.trim(),
+                used_solution: memoData.usedSolution.trim(),
+            }, { onConflict: 'biz_num' });
+
+            if (error) throw error;
+            alert("DB에 매장 정보(매장명, 솔루션)가 성공적으로 저장/업데이트 되었습니다!");
+        } catch (e) {
+            alert("매장 정보 저장에 실패했습니다. (DB 테이블 store_directory를 확인하세요)");
+            console.error(e);
+        }
     };
 
     const exportToExcel = () => {
@@ -603,7 +661,7 @@ const App = () => {
                             removeItem={removeItem}
                             updateItem={updateItem}
                             moveOrCopyItem={moveOrCopyItem}
-                            onReset={() => { setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' }); setHistory([]); setActiveStep('start'); setSearchKeyword(''); setIsMemoSearch(false); setSearchExpandedIdx(null); }}
+                            onReset={() => { setMemoData({ storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' }); setHistory([]); setActiveStep('start'); setSearchKeyword(''); setIsMemoSearch(false); setSearchExpandedIdx(null); }}
                             onBack={goBack}
                             defaultExpandedIdx={searchExpandedIdx}
                         />
@@ -663,15 +721,29 @@ const App = () => {
                             <div className="space-y-4 mb-6">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명</label>
-                                    <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-bizNum')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                    <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-usedSolution')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호</label>
-                                    <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-contact')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호 (DB 매칭)</label>
+                                    <div className="flex gap-2">
+                                        <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                        <button onClick={handleSearchStore} className="px-4 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-200 transition-colors flex-shrink-0 text-sm active:scale-95 shadow-sm border border-indigo-200 dark:border-indigo-800">
+                                            매칭
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션</label>
+                                        <button onClick={handleSaveStore} className="text-[10px] font-bold text-slate-400 hover:text-emerald-500 bg-slate-50 hover:bg-emerald-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded transition-colors shadow-sm">
+                                            DB 정보 업데이트 (저장)
+                                        </button>
+                                    </div>
+                                    <input id="memo-usedSolution" value={memoData.usedSolution} onChange={e => setMemoData({ ...memoData, usedSolution: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-contact')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버 포스, 우노스 키오스크" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">연락처</label>
-                                    <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 010-1234-5678" maxLength={13} />
+                                    <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none font-bold" placeholder="예: 010-1234-5678" maxLength={13} />
                                 </div>
                                 <div className="relative">
                                     <div className="flex items-center justify-between mb-2">
@@ -742,7 +814,7 @@ const App = () => {
 
                             <button onClick={() => {
                                 if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
-                                    setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' });
+                                    setMemoData({ storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
                                     setHistory([]);
                                     setActiveStep('start');
                                     setSearchKeyword('');
