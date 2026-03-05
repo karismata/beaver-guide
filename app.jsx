@@ -6,6 +6,19 @@ const App = () => {
     const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', contact: '', issue: '' });
     const [searchKeyword, setSearchKeyword] = useState('');
 
+    // 자연어 처리 도우미 (조사 및 어미 제거)
+    const parseKeywords = (text) => {
+        if (!text) return [];
+        const suffixes = ['은', '는', '이', '가', '을', '를', '에', '에게', '에서', '로', '으로', '와', '과', '도', '만', '요', '습니다', '합니다', '입니다', '돼요', '되나요', '해', '해줘', '안돼요', '안됨'];
+        return text.toLowerCase().replace(/[?!.,'"]/g, ' ').split(/\s+/).map(w => {
+            for (let s of suffixes.sort((a, b) => b.length - a.length)) {
+                if (w.endsWith(s) && w.length > s.length) return w.slice(0, -s.length);
+            }
+            return w;
+        }).filter(w => w.length > 1 || text.split(/\s+/).length === 1);
+        // 키워드가 여러개일땐 1글자짜리 조각(예: "안", "수") 무시. 단, 원래 검색어가 1단어면 그대로 허용.
+    };
+
     // Supabase State (Hardcoded zero-config setup)
     const [sbConfig, setSbConfig] = useState(() => {
         const saved = localStorage.getItem('cs_guide_sb_config');
@@ -350,7 +363,7 @@ const App = () => {
                             <div className="space-y-4">
                                 {(() => {
                                     const matches = [];
-                                    const keywords = searchKeyword.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+                                    const keywords = parseKeywords(searchKeyword);
                                     if (keywords.length === 0) return null;
 
                                     Object.keys(contents).forEach(k => {
@@ -458,7 +471,8 @@ const App = () => {
                                                     ...Object.keys(contents).filter(k => k.startsWith('info_') && !scopeKeys.includes(k))
                                                 ];
 
-                                                const keywords = searchKeyword.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+                                                const keywords = parseKeywords(searchKeyword);
+                                                if (keywords.length === 0) return null;
 
                                                 const results = allSearchableKeys.filter(key =>
                                                     keywords.every(kw =>
