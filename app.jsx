@@ -65,6 +65,7 @@ const App = () => {
     const [newItem, setNewItem] = useState("");
     const [modalState, setModalState] = useState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
     const [isLocalChange, setIsLocalChange] = useState(false);
+    const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
 
     const categories = Object.keys(contents).map(key => ({ id: key, title: contents[key].title }));
     const allTargets = [
@@ -334,11 +335,19 @@ const App = () => {
             <header className="mb-14 text-center animate-fade-in relative w-full pt-4">
                 <div className="absolute right-0 top-0 flex items-center gap-2">
                     <button
+                        onClick={() => setIsGuideModalOpen(true)}
+                        className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-2 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-xl transition-all shadow-sm flex items-center gap-2 font-black text-sm active:scale-95"
+                        title="스마트 기능 가이드"
+                    >
+                        <Icon name="help-circle" size={18} />
+                        <span className="hidden sm:inline">꿀팁 가이드</span>
+                    </button>
+                    <button
                         onClick={() => setIsDarkMode(!isDarkMode)}
-                        className="p-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-xl transition-all shadow-sm flex items-center gap-2 font-bold text-sm"
+                        className="p-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 rounded-xl transition-all shadow-sm flex items-center gap-2 font-bold text-sm active:scale-95"
                         title="다크모드 전환"
                     >
-                        <Icon name={isDarkMode ? 'sun' : 'moon'} size={16} />
+                        <Icon name={isDarkMode ? 'sun' : 'moon'} size={18} />
                     </button>
                 </div>
                 <div className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-full text-xs font-black tracking-widest uppercase mb-6 shadow-xl shadow-blue-200 mt-2">
@@ -774,6 +783,86 @@ const App = () => {
                     <span className="p-1 bg-white dark:bg-slate-800/20 rounded-full"><Icon name="edit-3" size={16} className="group-hover:rotate-12 transition-transform" /></span>
                     상담 메모 열기
                 </button>
+            )}
+
+            {/* 기능 가이드 모달 */}
+            {isGuideModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/80 dark:bg-slate-900/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-2xl relative my-8 overflow-hidden">
+                        <button onClick={() => setIsGuideModalOpen(false)} className="absolute top-6 right-6 text-indigo-200 hover:text-white z-10 bg-indigo-900/20 hover:bg-indigo-900/50 rounded-full p-2 backdrop-blur-md transition-colors"><Icon name="x" size={24} /></button>
+
+                        <div className="p-8 md:p-10 border-b border-indigo-100 dark:border-indigo-900 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/40 dark:to-blue-900/20">
+                            <h2 className="text-3xl font-black text-indigo-900 dark:text-indigo-100 flex items-center gap-3">
+                                <span className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50"><Icon name="sparkles" size={28} /></span>
+                                스마트 가이드 & 메모 보드 꿀팁
+                            </h2>
+                            <p className="mt-4 text-indigo-700 dark:text-indigo-300 font-bold text-lg">새로워진 기능들을 통해 더욱 빠르고 정확하게 고객 상담을 진행해보세요!</p>
+                        </div>
+
+                        <div className="p-8 md:p-10 space-y-10 max-h-[60vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-800">
+
+                            {/* 섹션 1: 자연어 기반 지침 검색 기능 */}
+                            <section>
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                                    <Icon name="search" className="text-blue-500" size={20} /> <span className="underline decoration-blue-200 dark:decoration-blue-900/50 decoration-4 underline-offset-4">메모장 작성 내용으로 지침 찾기</span>
+                                </h3>
+                                <p className="text-slate-600 dark:text-slate-300 mb-4 leading-relaxed font-medium">우측 <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded font-bold text-slate-800 dark:text-slate-200">고객 문의내용</span> 칸에 상담 내용을 평소처럼 길게 줄글로 받아 적어만 주세요!</p>
+                                <ul className="space-y-3 bg-blue-50/50 dark:bg-slate-800/50 p-5 rounded-2xl border border-blue-100 dark:border-slate-700">
+                                    <li className="flex items-start gap-3">
+                                        <Icon name="check-circle-2" className="text-blue-500 mt-1 flex-shrink-0" size={18} />
+                                        <span className="text-slate-700 dark:text-slate-300"><strong>조사/어미 무시:</strong> "안돼요", "카드가" 라고 적어도 시스템이 신기하게 핵심 내용만 잘라내어 "카드", "안됨" 으로 인식합니다.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <Icon name="check-circle-2" className="text-blue-500 mt-1 flex-shrink-0" size={18} />
+                                        <span className="text-slate-700 dark:text-slate-300"><strong>3단계 유연한 검색:</strong> 말이 길어져 단어가 많더라도, 적합한 1순위 문서부터 조금이라도 관련있는 문서까지 알아서 가져와서 나열해 드립니다! 결과가 없어서 당황하실 일이 없습니다.</span>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            {/* 섹션 2: 검색 모드 커스터마이징 */}
+                            <section>
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                                    <Icon name="settings" className="text-emerald-500" size={20} /> <span className="underline decoration-emerald-200 dark:decoration-emerald-900/50 decoration-4 underline-offset-4">나에게 딱 맞는 스마트 설정 켜기</span>
+                                </h3>
+                                <p className="text-slate-600 dark:text-slate-300 mb-4 leading-relaxed font-medium">우측 하단의 <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-xs">⚙️ 관리자 도구</span> 버튼을 누르시면 2가지 강력한 검색 모드를 취향껏 활성화할 수 있습니다.</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 rounded-2xl shadow-sm hover:border-blue-400 transition-colors">
+                                        <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-2"><Icon name="toggle-left" size={18} className="text-blue-500" /> 수동 모드</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">문의내용 작성칸 밑에 생기는 <strong className="text-blue-600 dark:text-blue-400">파란색 검색 버튼</strong>을 직접 누를 때만 지침을 검색합니다.</p>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 rounded-2xl shadow-sm hover:border-emerald-400 transition-colors">
+                                        <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-2"><Icon name="toggle-right" size={18} className="text-emerald-500" /> 자동 모드</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">문의내용을 타이핑하다 잠깐(약 1.2초) 생각하느라 손을 멈추면, <strong className="text-emerald-600 dark:text-emerald-400">알아서 훌쩍</strong> 화면이 관련 결과창으로 넘어가 있습니다!</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* 섹션 3: 메모 보드 연동성 */}
+                            <section>
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                                    <Icon name="layout" className="text-purple-500" size={20} /> <span className="underline decoration-purple-200 dark:decoration-purple-900/50 decoration-4 underline-offset-4">편안한 사용성 고도화</span>
+                                </h3>
+                                <ul className="space-y-4">
+                                    <li className="flex items-start gap-3">
+                                        <Icon name="arrow-right-circle" className="text-purple-500 mt-1 flex-shrink-0" size={18} />
+                                        <p className="text-slate-700 dark:text-slate-300"><strong>편안한 엔터(Enter) 입력:</strong> 매장명 치고 <code>Enter</code> ➔ 사업자번호 치고 <code>Enter</code> ➔ <code>Enter</code> 번으로 골치아픈 마우스 쓰지 말고 빠르게 줄을 넘겨 쓰세요!</p>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <Icon name="arrow-right-circle" className="text-purple-500 mt-1 flex-shrink-0" size={18} />
+                                        <p className="text-slate-700 dark:text-slate-300"><strong>반응형 메모 좌우 이동:</strong> 왼손잡이시하거나 모니터 프로그램들 배치가 다를 경우, 메모장 헤더 우측의 `패널 이동` 아이콘을 눌러 메모장을 모니터 왼쪽/오른쪽으로 자유롭게 던져버리세요. 나머지 공간과 버튼들이 알아서 균형을 잡습니다.</p>
+                                    </li>
+                                </ul>
+                            </section>
+
+                        </div>
+
+                        <div className="p-6 md:p-8 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                            <button onClick={() => setIsGuideModalOpen(false)} className="px-8 py-4 bg-indigo-600 text-white hover:bg-indigo-700 font-black rounded-xl transition-all shadow-xl hover:shadow-indigo-500/30 active:scale-95 text-lg">
+                                확인하고 닫기
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
