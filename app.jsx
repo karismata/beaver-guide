@@ -42,6 +42,12 @@ const App = () => {
     const [memoPosition, setMemoPosition] = useState(() => {
         return localStorage.getItem('cs_guide_memo_pos') || 'right';
     });
+    const [useManualMemoSearch, setUseManualMemoSearch] = useState(() => {
+        return localStorage.getItem('cs_guide_manual_memo_search') === 'true';
+    });
+    const [useAutoMemoSearch, setUseAutoMemoSearch] = useState(() => {
+        return localStorage.getItem('cs_guide_auto_memo_search') === 'true';
+    });
     const [newItem, setNewItem] = useState("");
     const [modalState, setModalState] = useState({ isOpen: false, stepKey: null, choiceIndex: null, data: null });
     const [isLocalChange, setIsLocalChange] = useState(false);
@@ -52,10 +58,29 @@ const App = () => {
         ...Object.keys(contents).map(k => ({ id: k, type: 'result', title: contents[k].title }))
     ];
 
-    // Persist memo position
+    // Persist memo position & features
     useEffect(() => {
         localStorage.setItem('cs_guide_memo_pos', memoPosition);
     }, [memoPosition]);
+    useEffect(() => {
+        localStorage.setItem('cs_guide_manual_memo_search', useManualMemoSearch);
+    }, [useManualMemoSearch]);
+    useEffect(() => {
+        localStorage.setItem('cs_guide_auto_memo_search', useAutoMemoSearch);
+    }, [useAutoMemoSearch]);
+
+    // Auto memo search logic
+    useEffect(() => {
+        if (!useAutoMemoSearch) return;
+        const text = memoData.issue.trim();
+        const timer = setTimeout(() => {
+            if (text.length >= 2) {
+                setSearchKeyword(text);
+                setActiveStep('__search__');
+            }
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [memoData.issue, useAutoMemoSearch]);
 
     // Apply and Persist dark mode
     useEffect(() => {
@@ -325,7 +350,9 @@ const App = () => {
                             <div className="space-y-4">
                                 {(() => {
                                     const matches = [];
-                                    const searchLower = searchKeyword.toLowerCase();
+                                    const keywords = searchKeyword.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+                                    if (keywords.length === 0) return null;
+
                                     Object.keys(contents).forEach(k => {
                                         const c = contents[k];
 
@@ -342,16 +369,23 @@ const App = () => {
                                             }
                                         }
 
-                                        let titleMatched = false;
-                                        if (c.title.toLowerCase().includes(searchLower)) {
-                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, isTitleMatch: true, image: c.image });
-                                            titleMatched = true;
+                                        let titleMatched = keywords.every(kw => c.title.toLowerCase().includes(kw));
+
+                                        if (titleMatched && c.list.length === 0) {
+                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, isTitleMatch: true, image: c.image, isInfo: c.isInfo });
                                         }
+
+                                        let matchedItemFound = false;
                                         c.list.forEach((item, idx) => {
-                                            if (item && item.toLowerCase().includes(searchLower)) {
+                                            if (item && keywords.every(kw => item.toLowerCase().includes(kw) || c.title.toLowerCase().includes(kw))) {
                                                 matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, item, matchIdx: idx, image: idx === 0 ? c.image : null, isInfo: c.isInfo });
+                                                matchedItemFound = true;
                                             }
                                         });
+
+                                        if (titleMatched && !matchedItemFound && c.list.length > 0) {
+                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, item: c.list[0], matchIdx: 0, image: c.image, isInfo: c.isInfo });
+                                        }
                                     });
 
                                     if (matches.length === 0) {
@@ -424,9 +458,13 @@ const App = () => {
                                                     ...Object.keys(contents).filter(k => k.startsWith('info_') && !scopeKeys.includes(k))
                                                 ];
 
+                                                const keywords = searchKeyword.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+
                                                 const results = allSearchableKeys.filter(key =>
-                                                    contents[key].title.includes(searchKeyword) ||
-                                                    contents[key].list.some(item => item && item.includes(searchKeyword))
+                                                    keywords.every(kw =>
+                                                        contents[key].title.toLowerCase().includes(kw) ||
+                                                        contents[key].list.some(item => item && item.toLowerCase().includes(kw))
+                                                    )
                                                 );
 
                                                 if (results.length === 0) {
@@ -434,7 +472,7 @@ const App = () => {
                                                 }
 
                                                 return results.map(k => {
-                                                    const matchIdx = contents[k].list.findIndex(item => item.includes(searchKeyword));
+                                                    const matchIdx = contents[k].list.findIndex(item => item && keywords.every(kw => item.toLowerCase().includes(kw) || contents[k].title.toLowerCase().includes(kw)));
                                                     return (
                                                         <button key={k} onClick={() => { setSearchKeyword(''); navigateTo(k, `검색결과: ${contents[k].title}`, matchIdx !== -1 ? matchIdx : 0); }} className="w-full text-left p-4 hover:bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-start gap-3 transition-colors">
                                                             <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl flex-shrink-0">
@@ -452,32 +490,34 @@ const App = () => {
                                     )}
                                 </div>
                             )}
-                            <div className={`grid grid-cols-1 ${steps[activeStep].choices.length > 3 ? 'sm:grid-cols-2' : ''} gap-4 w-full max-w-3xl`}>
-                                {steps[activeStep].choices.map((choice, idx) => (
-                                    <ChoiceButton
-                                        key={choice.id}
-                                        label={choice.label}
-                                        sublabel={choice.sublabel}
-                                        icon={choice.icon}
-                                        color={choice.color || "blue"}
-                                        onClick={() => {
-                                            if (editMode) {
-                                                openChoiceModal(idx);
-                                            } else {
-                                                navigateTo(choice.target, choice.label);
-                                            }
-                                        }}
-                                        editMode={editMode}
-                                        onEdit={() => openChoiceModal(idx)}
-                                        onDelete={() => handleDeleteChoice(idx)}
-                                    />
-                                ))}
-                                {editMode && (
-                                    <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 dark:text-slate-400 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
-                                        <Icon name="plus" size={24} /> <span>선택지 추가하기</span>
-                                    </button>
-                                )}
-                            </div>
+                            {!(useManualMemoSearch && activeStep === 'start') && (
+                                <div className={`grid grid-cols-1 ${steps[activeStep].choices.length > 3 ? 'sm:grid-cols-2' : ''} gap-4 w-full max-w-3xl`}>
+                                    {steps[activeStep].choices.map((choice, idx) => (
+                                        <ChoiceButton
+                                            key={choice.id}
+                                            label={choice.label}
+                                            sublabel={choice.sublabel}
+                                            icon={choice.icon}
+                                            color={choice.color || "blue"}
+                                            onClick={() => {
+                                                if (editMode) {
+                                                    openChoiceModal(idx);
+                                                } else {
+                                                    navigateTo(choice.target, choice.label);
+                                                }
+                                            }}
+                                            editMode={editMode}
+                                            onEdit={() => openChoiceModal(idx)}
+                                            onDelete={() => handleDeleteChoice(idx)}
+                                        />
+                                    ))}
+                                    {editMode && (
+                                        <button onClick={() => openChoiceModal(null)} className="h-full min-h-[100px] py-4 border-2 border-dashed border-slate-300 rounded-[2rem] text-slate-500 dark:text-slate-400 font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 flex flex-col justify-center items-center gap-2 transition-all shadow-sm">
+                                            <Icon name="plus" size={24} /> <span>선택지 추가하기</span>
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </Step>
                     ) : contents[activeStep] ? (
                         <ResultCard
@@ -551,6 +591,19 @@ const App = () => {
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">고객 문의내용</label>
                                     <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar" placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
+                                    {useManualMemoSearch && (
+                                        <button onClick={() => {
+                                            const v = memoData.issue.trim();
+                                            if (v.length > 0) {
+                                                setSearchKeyword(v);
+                                                setActiveStep('__search__');
+                                            } else {
+                                                alert("고객 문의내용을 입력해주세요.");
+                                            }
+                                        }} className="w-full mt-2 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-md transition-all active:scale-95">
+                                            <Icon name="search" size={16} /> 작성 내용으로 지침 찾기
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -599,6 +652,16 @@ const App = () => {
                                 <button onClick={() => { exportToExcel(); setIsMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-3.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all text-sm shadow-sm hover:shadow-md active:scale-95">
                                     <Icon name="download" size={16} /> 엑셀 다운로드
                                 </button>
+                                <div className="border-t border-slate-100 dark:border-slate-800 my-1 pt-3 pb-1 flex flex-col gap-3">
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-3 w-full hover:bg-slate-50 dark:hover:bg-slate-700 p-2 rounded-lg transition-colors">
+                                        <input type="checkbox" checked={useManualMemoSearch} onChange={e => setUseManualMemoSearch(e.target.checked)} className="rounded border-slate-300 w-4 h-4 text-blue-600 cursor-pointer" />
+                                        <span>수동 검색 모드 켜기</span>
+                                    </label>
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-200 cursor-pointer flex items-center gap-3 w-full hover:bg-slate-50 dark:hover:bg-slate-700 p-2 rounded-lg transition-colors">
+                                        <input type="checkbox" checked={useAutoMemoSearch} onChange={e => setUseAutoMemoSearch(e.target.checked)} className="rounded border-slate-300 w-4 h-4 text-emerald-600 cursor-pointer" />
+                                        <span>자동 검색 모드 켜기</span>
+                                    </label>
+                                </div>
                             </div>
                         )}
                         <button
