@@ -1,5 +1,4 @@
-import ReactDOM from 'react-dom/client';
-import { contents, steps } from './data.js';
+
 
 const { useState, useEffect, useMemo } = React;
 
