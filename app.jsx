@@ -583,7 +583,7 @@ const App = () => {
                             removeItem={removeItem}
                             updateItem={updateItem}
                             moveOrCopyItem={moveOrCopyItem}
-                            onReset={() => { setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' }); setHistory([]); setActiveStep('start'); setSearchExpandedIdx(null); }}
+                            onReset={() => { setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' }); setHistory([]); setActiveStep('start'); setSearchKeyword(''); setIsMemoSearch(false); setSearchExpandedIdx(null); }}
                             onBack={goBack}
                             defaultExpandedIdx={searchExpandedIdx}
                         />
@@ -675,6 +675,8 @@ const App = () => {
                                     setMemoData({ storeName: '', bizNum: '', contact: '', issue: '' });
                                     setHistory([]);
                                     setActiveStep('start');
+                                    setSearchKeyword('');
+                                    setIsMemoSearch(false);
                                 }
                             }} className="w-full mt-6 py-3.5 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 group shadow-sm">
                                 <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
