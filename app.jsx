@@ -5,6 +5,7 @@ const App = () => {
     const [history, setHistory] = useState([]);
     const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', contact: '', issue: '' });
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [isMemoSearch, setIsMemoSearch] = useState(false);
 
     // 자연어 처리 도우미 (조사 및 어미 제거)
     const parseKeywords = (text) => {
@@ -87,13 +88,14 @@ const App = () => {
         if (!useAutoMemoSearch) return;
         const text = memoData.issue.trim();
         const timer = setTimeout(() => {
-            if (text.length >= 2) {
+            if (text.length >= 2 && text !== searchKeyword) {
+                setIsMemoSearch(true);
                 setSearchKeyword(text);
                 setActiveStep('__search__');
             }
-        }, 800);
+        }, 1200);
         return () => clearTimeout(timer);
-    }, [memoData.issue, useAutoMemoSearch]);
+    }, [memoData.issue, useAutoMemoSearch, searchKeyword]);
 
     // Apply and Persist dark mode
     useEffect(() => {
@@ -362,8 +364,11 @@ const App = () => {
                             </div>
                             <div className="space-y-4">
                                 {(() => {
-                                    const matches = [];
-                                    const keywords = parseKeywords(searchKeyword);
+                                    let matches = [];
+                                    const rawKeywords = searchKeyword.toLowerCase().split(/[,\s]+/).filter(w => w.length > 0);
+                                    const parsedKeywords = parseKeywords(searchKeyword);
+                                    const keywords = isMemoSearch ? parsedKeywords : rawKeywords;
+
                                     if (keywords.length === 0) return null;
 
                                     Object.keys(contents).forEach(k => {
@@ -382,30 +387,62 @@ const App = () => {
                                             }
                                         }
 
-                                        let titleMatched = keywords.every(kw => c.title.toLowerCase().includes(kw));
+                                        let titleMatchCount = keywords.filter(kw => c.title.toLowerCase().includes(kw)).length;
 
-                                        if (titleMatched && c.list.length === 0) {
-                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, isTitleMatch: true, image: c.image, isInfo: c.isInfo });
+                                        if (titleMatchCount > 0 && c.list.length === 0) {
+                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, matchScore: titleMatchCount, isTitleMatch: true, image: c.image, isInfo: c.isInfo });
                                         }
 
-                                        let matchedItemFound = false;
+                                        let itemMatched = false;
                                         c.list.forEach((item, idx) => {
-                                            if (item && keywords.every(kw => item.toLowerCase().includes(kw) || c.title.toLowerCase().includes(kw))) {
-                                                matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, item, matchIdx: idx, image: idx === 0 ? c.image : null, isInfo: c.isInfo });
-                                                matchedItemFound = true;
+                                            if (!item) return;
+                                            let itemMatchCount = keywords.filter(kw => item.toLowerCase().includes(kw) || c.title.toLowerCase().includes(kw)).length;
+
+                                            if (itemMatchCount > 0) {
+                                                matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, item, matchIdx: idx, image: idx === 0 ? c.image : null, isInfo: c.isInfo, matchScore: itemMatchCount });
+                                                itemMatched = true;
                                             }
                                         });
 
-                                        if (titleMatched && !matchedItemFound && c.list.length > 0) {
-                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, item: c.list[0], matchIdx: 0, image: c.image, isInfo: c.isInfo });
+                                        if (titleMatchCount > 0 && !itemMatched && c.list.length > 0) {
+                                            matches.push({ contentKey: k, title: c.title, icon: c.icon, type: c.type, item: c.list[0], matchIdx: 0, image: c.image, isInfo: c.isInfo, matchScore: titleMatchCount });
                                         }
                                     });
 
-                                    if (matches.length === 0) {
+                                    // 3단계 검색 전략 적용 (메모 검색일 때만 점진적 완화)
+                                    if (isMemoSearch) {
+                                        const exactMatches = matches.filter(m => m.matchScore === keywords.length);
+                                        if (exactMatches.length > 0) {
+                                            matches = exactMatches;
+                                        } else {
+                                            const partialMatches = matches.filter(m => m.matchScore >= Math.ceil(keywords.length * 0.5));
+                                            if (partialMatches.length > 0) {
+                                                matches = partialMatches.sort((a, b) => b.matchScore - a.matchScore);
+                                            } else {
+                                                matches = matches.sort((a, b) => b.matchScore - a.matchScore).slice(0, 5); // 연관성 높은 최대 5개 노출
+                                            }
+                                        }
+                                    } else {
+                                        // 일반 검색 (모두 포함 AND 강제)
+                                        matches = matches.filter(m => m.matchScore === keywords.length);
+                                    }
+
+                                    // 중복 제거
+                                    const uniqueMatches = [];
+                                    const seen = new Set();
+                                    for (let m of matches) {
+                                        const uid = m.contentKey + '_' + (m.matchIdx !== undefined ? m.matchIdx : '');
+                                        if (!seen.has(uid)) {
+                                            seen.add(uid);
+                                            uniqueMatches.push(m);
+                                        }
+                                    }
+
+                                    if (uniqueMatches.length === 0) {
                                         return <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-sm"><Icon name="search-x" size={48} className="mx-auto text-slate-300 dark:text-slate-400 mb-4" /><p className="text-slate-500 dark:text-slate-400 font-bold text-lg">일치하는 결과가 없습니다.</p></div>;
                                     }
 
-                                    return matches.map((m, i) => (
+                                    return uniqueMatches.map((m, i) => (
                                         <div key={i} className="bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
                                             <div className="flex items-center gap-3 mb-3">
                                                 <span className={`p-2 rounded-xl transition-colors ${m.type === 'success' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' : m.type === 'info' ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100'}`}>
@@ -441,9 +478,10 @@ const App = () => {
                                         type="text"
                                         placeholder="어떤 문제가 발생했나요? (검색어 입력 후 Enter)"
                                         value={searchKeyword}
-                                        onChange={e => setSearchKeyword(e.target.value)}
+                                        onChange={e => { setSearchKeyword(e.target.value); setIsMemoSearch(false); }}
                                         onKeyDown={e => {
                                             if (e.key === 'Enter' && searchKeyword.trim().length > 0) {
+                                                setIsMemoSearch(false);
                                                 navigateTo('__search__', `검색: ${searchKeyword}`);
                                             }
                                         }}
@@ -471,7 +509,7 @@ const App = () => {
                                                     ...Object.keys(contents).filter(k => k.startsWith('info_') && !scopeKeys.includes(k))
                                                 ];
 
-                                                const keywords = parseKeywords(searchKeyword);
+                                                const keywords = searchKeyword.toLowerCase().split(/[,\s]+/).filter(w => w.length > 0);
                                                 if (keywords.length === 0) return null;
 
                                                 const results = allSearchableKeys.filter(key =>
@@ -609,6 +647,7 @@ const App = () => {
                                         <button onClick={() => {
                                             const v = memoData.issue.trim();
                                             if (v.length > 0) {
+                                                setIsMemoSearch(true);
                                                 setSearchKeyword(v);
                                                 setActiveStep('__search__');
                                             } else {
