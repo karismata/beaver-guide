@@ -1,6 +1,6 @@
 
 
-const { useState, useEffect, useMemo } = React;
+const { useState, useEffect, useMemo, useRef } = React;
 
 const PREDEFINED_SOLUTIONS = [
     { id: '비버', color: 'blue' },
@@ -12,14 +12,17 @@ const PREDEFINED_SOLUTIONS = [
 ];
 
 const getSolColorClasses = (color, isActive) => {
+    if (!isActive) {
+        return 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 shadow-sm';
+    }
     switch (color) {
-        case 'blue': return isActive ? 'bg-blue-500 text-white border-blue-600 shadow-blue-500/30' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50';
-        case 'green': return isActive ? 'bg-emerald-500 text-white border-emerald-600 shadow-emerald-500/30' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50';
-        case 'pink': return isActive ? 'bg-pink-500 text-white border-pink-600 shadow-pink-500/30' : 'bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400 border-pink-200 dark:border-pink-800 hover:bg-pink-100 dark:hover:bg-pink-900/50';
-        case 'yellow': return isActive ? 'bg-yellow-500 text-white border-yellow-600 shadow-yellow-500/30' : 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800 hover:bg-yellow-100 dark:hover:bg-yellow-900/50';
-        case 'orange': return isActive ? 'bg-orange-500 text-white border-orange-600 shadow-orange-500/30' : 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/50';
-        case 'purple': return isActive ? 'bg-purple-500 text-white border-purple-600 shadow-purple-500/30' : 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/50';
-        default: return isActive ? 'bg-slate-500 text-white border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200';
+        case 'blue': return 'bg-blue-500 text-white border-blue-600 shadow-blue-500/30';
+        case 'green': return 'bg-emerald-500 text-white border-emerald-600 shadow-emerald-500/30';
+        case 'pink': return 'bg-pink-500 text-white border-pink-600 shadow-pink-500/30';
+        case 'yellow': return 'bg-yellow-500 text-white border-yellow-600 shadow-yellow-500/30';
+        case 'orange': return 'bg-orange-500 text-white border-orange-600 shadow-orange-500/30';
+        case 'purple': return 'bg-purple-500 text-white border-purple-600 shadow-purple-500/30';
+        default: return 'bg-slate-500 text-white border-slate-600 shadow-slate-500/30';
     }
 };
 
@@ -91,6 +94,17 @@ const App = () => {
     const [isLocalChange, setIsLocalChange] = useState(false);
     const [guideStep, setGuideStep] = useState(0);
     const [isSolutionExpanded, setIsSolutionExpanded] = useState(false);
+    const solutionDropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (solutionDropdownRef.current && !solutionDropdownRef.current.contains(event.target)) {
+                setIsSolutionExpanded(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const categories = Object.keys(contents).map(key => ({ id: key, title: contents[key].title }));
     const allTargets = [
@@ -757,7 +771,7 @@ const App = () => {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="relative">
+                                <div className="relative" ref={solutionDropdownRef}>
                                     <div className="flex items-center justify-between mb-1">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션</label>
                                         <button onClick={handleSaveStore} className="text-[10px] font-bold text-slate-400 hover:text-emerald-500 bg-slate-50 hover:bg-emerald-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded transition-colors shadow-sm">
@@ -777,11 +791,18 @@ const App = () => {
                                                 return (
                                                     <span key={sol} className={`px-2 py-0.5 text-xs font-bold rounded shadow-sm border ${colorClass} flex items-center gap-1`}>
                                                         {sol}
-                                                        <Icon name="x" size={12} className="cursor-pointer hover:text-red-200" onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            const newArr = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean).filter(v => v !== sol);
-                                                            setMemoData({ ...memoData, usedSolution: newArr.join(', ') });
-                                                        }} />
+                                                        <button
+                                                            type="button"
+                                                            className="flex items-center justify-center opacity-80 hover:opacity-100 hover:text-white"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                const newArr = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean).filter(v => v !== sol);
+                                                                setMemoData({ ...memoData, usedSolution: newArr.join(', ') });
+                                                            }}
+                                                        >
+                                                            <Icon name="x" size={12} className="cursor-pointer" />
+                                                        </button>
                                                     </span>
                                                 );
                                             })
@@ -830,9 +851,6 @@ const App = () => {
                                                         }
                                                     }}
                                                 />
-                                            </div>
-                                            <div className="mt-3 text-right">
-                                                <button onClick={() => setIsSolutionExpanded(false)} className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 rounded hover:bg-slate-200 dark:hover:bg-slate-600">닫기</button>
                                             </div>
                                         </div>
                                     )}
