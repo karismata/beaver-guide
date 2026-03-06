@@ -94,13 +94,18 @@ const App = () => {
     const [isLocalChange, setIsLocalChange] = useState(false);
     const [guideStep, setGuideStep] = useState(0);
     const [isSolutionExpanded, setIsSolutionExpanded] = useState(false);
+    const [isStoreSettingsExpanded, setIsStoreSettingsExpanded] = useState(false);
     const [storeSelectModal, setStoreSelectModal] = useState({ isOpen: false, stores: [] });
     const solutionDropdownRef = useRef(null);
+    const storeSettingsRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (solutionDropdownRef.current && !solutionDropdownRef.current.contains(event.target)) {
                 setIsSolutionExpanded(false);
+            }
+            if (storeSettingsRef.current && !storeSettingsRef.current.contains(event.target)) {
+                setIsStoreSettingsExpanded(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -811,15 +816,28 @@ const App = () => {
                                 <div className="relative" ref={solutionDropdownRef}>
                                     <div className="flex items-center justify-between mb-1">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션 {memoData.dbId && <span className="text-emerald-500">(DB 연동됨)</span>}</label>
-                                        <div className="flex gap-1.5">
-                                            {memoData.dbId && (
-                                                <button onClick={handleDeleteStore} className="text-[10px] font-bold text-rose-400 hover:text-white bg-slate-50 hover:bg-rose-500 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded transition-colors shadow-sm focus:outline-none">
-                                                    DB 매장 삭제
-                                                </button>
-                                            )}
-                                            <button onClick={handleSaveStore} className="text-[10px] font-bold text-slate-400 hover:text-emerald-500 bg-slate-50 hover:bg-emerald-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded transition-colors shadow-sm focus:outline-none">
-                                                {memoData.dbId ? 'DB 업데이트' : '새 매장 등록'}
+                                        <div className="flex gap-1.5 relative" ref={storeSettingsRef}>
+                                            <button
+                                                onClick={() => setIsStoreSettingsExpanded(!isStoreSettingsExpanded)}
+                                                className="p-1 text-slate-400 hover:text-indigo-500 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors shadow-sm focus:outline-none"
+                                            >
+                                                <Icon name="settings" size={12} />
                                             </button>
+
+                                            {isStoreSettingsExpanded && (
+                                                <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 z-[60] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-2 shadow-xl w-32 animate-fade-in-up origin-top-right">
+                                                    {memoData.dbId && (
+                                                        <button onClick={() => { handleDeleteStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
+                                                            <span>매장 삭제</span>
+                                                            <Icon name="trash-2" size={12} />
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => { handleSaveStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
+                                                        <span>{memoData.dbId ? '정보 업데이트' : '새 매장 등록'}</span>
+                                                        <Icon name="save" size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div
