@@ -30,7 +30,7 @@ const getSolColorClasses = (color, isActive) => {
 const App = () => {
     const [activeStep, setActiveStep] = useState('start');
     const [history, setHistory] = useState([]);
-    const [memoData, setMemoData] = useState({ storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
+    const [memoData, setMemoData] = useState({ dbId: null, storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
     const [searchKeyword, setSearchKeyword] = useState('');
     const [isMemoSearch, setIsMemoSearch] = useState(false);
 
@@ -94,6 +94,7 @@ const App = () => {
     const [isLocalChange, setIsLocalChange] = useState(false);
     const [guideStep, setGuideStep] = useState(0);
     const [isSolutionExpanded, setIsSolutionExpanded] = useState(false);
+    const [storeSelectModal, setStoreSelectModal] = useState({ isOpen: false, stores: [] });
     const solutionDropdownRef = useRef(null);
 
     useEffect(() => {
@@ -366,19 +367,26 @@ const App = () => {
         }
 
         try {
-            const { data, error } = await supabase.from('store_directory').select('*').eq('biz_num', bn).single();
-            if (error || !data) {
+            const { data, error } = await supabase.from('store_directory').select('*').eq('biz_num', bn);
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
                 alert("DB에 매장 정보가 없습니다. 매장명과 솔루션을 입력 후 저장 버튼을 눌러주세요.");
-            } else {
+            } else if (data.length === 1) {
+                const store = data[0];
                 setMemoData(prev => ({
                     ...prev,
-                    storeName: data.store_name || prev.storeName,
-                    usedSolution: data.used_solution || prev.usedSolution,
+                    dbId: store.id,
+                    storeName: store.store_name || prev.storeName,
+                    usedSolution: store.used_solution || prev.usedSolution,
                 }));
-                alert(`[${data.store_name}] 매장 정보를 불러왔습니다!`);
+                alert(`[${store.store_name}] 매장 정보를 불러왔습니다!`);
+            } else {
+                setStoreSelectModal({ isOpen: true, stores: data });
             }
         } catch (e) {
-            alert("DB에 매장 정보가 없습니다. 매장명과 솔루션을 입력 후 저장 버튼을 눌러주세요.");
+            alert("DB에 매장 정보 조회 중 오류가 발생했습니다.");
+            console.error(e);
         }
     };
 
@@ -398,16 +406,45 @@ const App = () => {
         }
 
         try {
-            const { error } = await supabase.from('store_directory').upsert({
-                biz_num: bn,
-                store_name: memoData.storeName.trim(),
-                used_solution: memoData.usedSolution.trim(),
-            }, { onConflict: 'biz_num' });
+            if (memoData.dbId) {
+                const { error } = await supabase.from('store_directory').update({
+                    store_name: memoData.storeName.trim(),
+                    used_solution: memoData.usedSolution.trim(),
+                }).eq('id', memoData.dbId);
 
-            if (error) throw error;
-            alert("DB에 매장 정보(매장명, 솔루션)가 성공적으로 저장/업데이트 되었습니다!");
+                if (error) throw error;
+                alert("DB에 매장 정보가 성공적으로 업데이트 되었습니다!");
+            } else {
+                const { error } = await supabase.from('store_directory').insert({
+                    biz_num: bn,
+                    store_name: memoData.storeName.trim(),
+                    used_solution: memoData.usedSolution.trim(),
+                });
+
+                if (error) throw error;
+                alert("새로운 매장 정보가 DB에 성공적으로 저장되었습니다!");
+            }
         } catch (e) {
-            alert("매장 정보 저장에 실패했습니다. (DB 테이블 store_directory를 확인하세요)");
+            alert("매장 정보 저장에 실패했습니다. (DB 테이블 store_directory 속성을 확인하세요)");
+            console.error(e);
+        }
+    };
+
+    const handleDeleteStore = async () => {
+        if (!supabase) return;
+        if (!memoData.dbId) {
+            alert("현재 등록된 매장 정보가 아닙니다. (매칭된 매장만 삭제 가능)");
+            return;
+        }
+        if (!confirm(`정말 [${memoData.storeName}] 매장을 DB에서 삭제하시겠습니까?`)) return;
+
+        try {
+            const { error } = await supabase.from('store_directory').delete().eq('id', memoData.dbId);
+            if (error) throw error;
+            alert("매장 정보가 DB에서 완전히 삭제되었습니다.");
+            setMemoData(prev => ({ ...prev, dbId: null, storeName: '', usedSolution: '' }));
+        } catch (e) {
+            alert("매장 삭제 중 오류가 발생했습니다.");
             console.error(e);
         }
     };
@@ -700,7 +737,7 @@ const App = () => {
                             removeItem={removeItem}
                             updateItem={updateItem}
                             moveOrCopyItem={moveOrCopyItem}
-                            onReset={() => { setMemoData({ storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' }); setHistory([]); setActiveStep('start'); setSearchKeyword(''); setIsMemoSearch(false); setSearchExpandedIdx(null); }}
+                            onReset={() => { setMemoData({ dbId: null, storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' }); setHistory([]); setActiveStep('start'); setSearchKeyword(''); setIsMemoSearch(false); setSearchExpandedIdx(null); }}
                             onBack={goBack}
                             defaultExpandedIdx={searchExpandedIdx}
                         />
@@ -773,10 +810,17 @@ const App = () => {
                                 </div>
                                 <div className="relative" ref={solutionDropdownRef}>
                                     <div className="flex items-center justify-between mb-1">
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션</label>
-                                        <button onClick={handleSaveStore} className="text-[10px] font-bold text-slate-400 hover:text-emerald-500 bg-slate-50 hover:bg-emerald-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded transition-colors shadow-sm">
-                                            DB 정보 업데이트 (저장)
-                                        </button>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션 {memoData.dbId && <span className="text-emerald-500">(DB 연동됨)</span>}</label>
+                                        <div className="flex gap-1.5">
+                                            {memoData.dbId && (
+                                                <button onClick={handleDeleteStore} className="text-[10px] font-bold text-rose-400 hover:text-white bg-slate-50 hover:bg-rose-500 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded transition-colors shadow-sm focus:outline-none">
+                                                    DB 매장 삭제
+                                                </button>
+                                            )}
+                                            <button onClick={handleSaveStore} className="text-[10px] font-bold text-slate-400 hover:text-emerald-500 bg-slate-50 hover:bg-emerald-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded transition-colors shadow-sm focus:outline-none">
+                                                {memoData.dbId ? 'DB 업데이트' : '새 매장 등록'}
+                                            </button>
+                                        </div>
                                     </div>
                                     <div
                                         onClick={() => setIsSolutionExpanded(!isSolutionExpanded)}
@@ -928,7 +972,7 @@ const App = () => {
 
                             <button onClick={() => {
                                 if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
-                                    setMemoData({ storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
+                                    setMemoData({ dbId: null, storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
                                     setHistory([]);
                                     setActiveStep('start');
                                     setSearchKeyword('');
@@ -1023,6 +1067,49 @@ const App = () => {
                 </button>
             )}
 
+            {/* 다중 매장 선택 모달 */}
+            {storeSelectModal.isOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-lg p-8 relative">
+                        <button onClick={() => setStoreSelectModal({ isOpen: false, stores: [] })} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                            <Icon name="x" size={24} />
+                        </button>
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-2">
+                            <Icon name="layers" size={24} className="text-indigo-500" /> 다중 매장 선택
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-6">
+                            입력하신 사업자번호({memoData.bizNum})로 등록된 여러 매장이 존재합니다.<br />이번에 문의가 들어온 정확한 매장을 선택해주세요.
+                        </p>
+
+                        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-3">
+                            {storeSelectModal.stores.map((store, idx) => (
+                                <button
+                                    key={store.id || idx}
+                                    onClick={() => {
+                                        setMemoData(prev => ({
+                                            ...prev,
+                                            dbId: store.id,
+                                            storeName: store.store_name || prev.storeName,
+                                            usedSolution: store.used_solution || prev.usedSolution,
+                                        }));
+                                        setStoreSelectModal({ isOpen: false, stores: [] });
+                                        alert(`[${store.store_name}] 매장이 올바르게 선택되었습니다!`);
+                                    }}
+                                    className="w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all active:scale-[0.98] group flex justify-between items-center"
+                                >
+                                    <div>
+                                        <div className="font-black text-lg text-slate-800 dark:text-slate-100 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{store.store_name}</div>
+                                        <div className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 focus:outline-none">
+                                            <Icon name="tag" size={14} /> {store.used_solution || '솔루션 미기재'}
+                                        </div>
+                                    </div>
+                                    <Icon name="chevron-right" size={20} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );
