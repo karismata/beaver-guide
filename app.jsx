@@ -365,14 +365,25 @@ const App = () => {
             alert("Supabase 데이터베이스가 연결되어 있지 않습니다. 관리자 도구에서 연결해주세요.");
             return;
         }
-        const bn = memoData.bizNum.replace(/[^0-9]/g, '');
-        if (bn.length < 10) {
-            alert("정확한 사업자 번호(10자리)를 입력해주세요.");
+        const bn = memoData.bizNum ? memoData.bizNum.replace(/[^0-9]/g, '') : '';
+        const sn = memoData.storeName ? memoData.storeName.trim() : '';
+
+        if (bn.length < 10 && !sn) {
+            alert("검색할 매장명 또는 사업자 번호(10자리)를 입력해주세요.");
             return;
         }
 
         try {
-            const { data, error } = await supabase.from('store_directory').select('*').eq('biz_num', bn);
+            let query = supabase.from('store_directory').select('*');
+            if (bn.length >= 10 && sn) {
+                query = query.or(`biz_num.eq.${bn},store_name.ilike.%${sn}%`);
+            } else if (bn.length >= 10) {
+                query = query.eq('biz_num', bn);
+            } else if (sn) {
+                query = query.ilike('store_name', `%${sn}%`);
+            }
+
+            const { data, error } = await query;
             if (error) throw error;
 
             if (!data || data.length === 0) {
@@ -382,6 +393,7 @@ const App = () => {
                 setMemoData(prev => ({
                     ...prev,
                     dbId: store.id,
+                    bizNum: prev.bizNum || formatBizNum(store.biz_num),
                     storeName: store.store_name || prev.storeName,
                     usedSolution: store.used_solution || prev.usedSolution,
                 }));
@@ -801,15 +813,20 @@ const App = () => {
 
                             <div className="space-y-4 mb-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명</label>
-                                    <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-bizNum')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명 (DB 매칭)</label>
+                                    <div className="flex gap-2">
+                                        <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                        <button onClick={handleSearchStore} className="px-4 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-200 transition-colors flex-shrink-0 text-sm active:scale-95 shadow-sm border border-indigo-200 dark:border-indigo-800">
+                                            검색
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호 (DB 매칭)</label>
                                     <div className="flex gap-2">
                                         <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
                                         <button onClick={handleSearchStore} className="px-4 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-200 transition-colors flex-shrink-0 text-sm active:scale-95 shadow-sm border border-indigo-200 dark:border-indigo-800">
-                                            매칭
+                                            검색
                                         </button>
                                     </div>
                                 </div>
