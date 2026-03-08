@@ -871,7 +871,7 @@ const App = () => {
                                     <div className="relative" ref={storeSuggestionRef}>
                                         <input id="memo-storeName" autoComplete="off" value={memoData.storeName} onChange={e => {
                                             const val = e.target.value;
-                                            if (val.trim() === '' && memoData.dbId) {
+                                            if (memoData.dbId) {
                                                 setMemoData({ ...memoData, storeName: val, dbId: null, bizNum: '', usedSolution: '' });
                                             } else {
                                                 setMemoData({ ...memoData, storeName: val });
@@ -903,7 +903,7 @@ const App = () => {
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호 (DB 매칭)</label>
                                         <input id="memo-bizNum" value={memoData.bizNum} onChange={e => {
                                             const val = formatBizNum(e.target.value);
-                                            if (val.trim() === '' && memoData.dbId) {
+                                            if (memoData.dbId) {
                                                 setMemoData({ ...memoData, bizNum: val, dbId: null, storeName: '', usedSolution: '' });
                                             } else {
                                                 setMemoData({ ...memoData, bizNum: val });
