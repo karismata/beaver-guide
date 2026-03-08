@@ -96,6 +96,12 @@ const App = () => {
     const [isSolutionExpanded, setIsSolutionExpanded] = useState(false);
     const [isStoreSettingsExpanded, setIsStoreSettingsExpanded] = useState(false);
     const [storeSelectModal, setStoreSelectModal] = useState({ isOpen: false, stores: [] });
+
+    // Store autocomplete state
+    const [storeSuggestions, setStoreSuggestions] = useState([]);
+    const [isStoreSuggestionOpen, setIsStoreSuggestionOpen] = useState(false);
+    const storeSuggestionRef = useRef(null);
+
     const solutionDropdownRef = useRef(null);
     const storeSettingsRef = useRef(null);
 
@@ -106,6 +112,9 @@ const App = () => {
             }
             if (storeSettingsRef.current && !storeSettingsRef.current.contains(event.target)) {
                 setIsStoreSettingsExpanded(false);
+            }
+            if (storeSuggestionRef.current && !storeSuggestionRef.current.contains(event.target)) {
+                setIsStoreSuggestionOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -128,6 +137,30 @@ const App = () => {
     useEffect(() => {
         localStorage.setItem('cs_guide_auto_memo_search', useAutoMemoSearch);
     }, [useAutoMemoSearch]);
+
+    // Store Auto Complete
+    useEffect(() => {
+        if (!supabase) return;
+        const text = memoData.storeName.trim();
+        if (text.length < 2) {
+            setStoreSuggestions([]);
+            setIsStoreSuggestionOpen(false);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            // Only search if active element is the input itself (prevent search loop on selection)
+            if (document.activeElement?.id !== 'memo-storeName') return;
+            try {
+                const { data, error } = await supabase.from('store_directory').select('*').ilike('store_name', `%${text}%`).limit(10);
+                if (!error && data) {
+                    setStoreSuggestions(data);
+                    setIsStoreSuggestionOpen(data.length > 0);
+                }
+            } catch (e) { console.error(e); }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [memoData.storeName, supabase]);
 
     // Auto memo search logic
     useEffect(() => {
@@ -397,7 +430,6 @@ const App = () => {
                     storeName: store.store_name || prev.storeName,
                     usedSolution: store.used_solution || prev.usedSolution,
                 }));
-                alert(`[${store.store_name}] 매장 정보를 불러왔습니다!`);
             } else {
                 setStoreSelectModal({ isOpen: true, stores: data });
             }
@@ -771,12 +803,35 @@ const App = () => {
                 {/* Right Panel - Sticky Memo */}
                 {memoPosition !== 'hidden' && (
                     <div className="w-full lg:w-[360px] flex-shrink-0 animate-fade-in relative z-10 transition-all duration-500">
-                        <div className={`sticky top-8 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 transition-all ${guideStep === 1 || guideStep === 2 ? 'z-[101] ring-4 ring-indigo-500/50 ring-offset-4 ring-offset-slate-50 dark:ring-offset-slate-900' : ''}`}>
-                            <div className={`flex items-center justify-between mb-8 ${memoPosition === 'left' ? 'flex-row-reverse' : ''} relative ${guideStep === 3 ? 'z-[101] ring-4 ring-indigo-500/50 bg-white dark:bg-slate-800 p-2 rounded-2xl ring-offset-2' : ''}`}>
+                        <div className="sticky top-8">
+                            <div className={`flex items-center justify-between mb-3 px-2 ${memoPosition === 'left' ? 'flex-row-reverse' : ''} relative ${guideStep === 3 ? 'z-[101] ring-4 ring-indigo-500/50 bg-white dark:bg-slate-800 p-2 rounded-2xl ring-offset-2' : ''}`}>
                                 <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                    <span className="p-2 bg-blue-100 text-blue-600 rounded-full"><Icon name="edit-3" size={18} /></span> 상담 메모
+                                    <span className="p-2 bg-blue-100 text-blue-600 rounded-full shadow-sm"><Icon name="edit-3" size={18} /></span> 상담 메모
                                 </h3>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5">
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
+                                                setMemoData({ dbId: null, storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
+                                                setHistory([]);
+                                                setActiveStep('start');
+                                                setSearchKeyword('');
+                                                setIsMemoSearch(false);
+                                            }
+                                        }}
+                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                        title="메모 및 진행상황 초기화"
+                                    >
+                                        <Icon name="rotate-ccw" size={16} />
+                                    </button>
+                                    <button
+                                        onClick={handleCopyMemo}
+                                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                        title="메모 복사"
+                                    >
+                                        <Icon name="copy" size={16} />
+                                    </button>
+                                    <div className="w-px h-4 bg-slate-200 mx-1"></div>
                                     <button
                                         onClick={() => setMemoPosition(memoPosition === 'left' ? 'right' : 'left')}
                                         className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
@@ -790,10 +845,6 @@ const App = () => {
                                         title="메모 숨기기"
                                     >
                                         <Icon name="x" size={16} />
-                                    </button>
-                                    <div className="w-px h-4 bg-slate-200 mx-1"></div>
-                                    <button onClick={handleCopyMemo} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-600 active:scale-95 ml-1">
-                                        <Icon name="copy" size={14} /> 복사
                                     </button>
                                 </div>
 
@@ -811,211 +862,227 @@ const App = () => {
                                 )}
                             </div>
 
-                            <div className="space-y-4 mb-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명 (DB 매칭)</label>
-                                    <div className="flex gap-2">
-                                        <input id="memo-storeName" value={memoData.storeName} onChange={e => setMemoData({ ...memoData, storeName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
-                                        <button onClick={handleSearchStore} className="px-4 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-200 transition-colors flex-shrink-0 text-sm active:scale-95 shadow-sm border border-indigo-200 dark:border-indigo-800">
-                                            검색
-                                        </button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호 (DB 매칭)</label>
-                                    <div className="flex gap-2">
-                                        <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
-                                        <button onClick={handleSearchStore} className="px-4 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-200 transition-colors flex-shrink-0 text-sm active:scale-95 shadow-sm border border-indigo-200 dark:border-indigo-800">
-                                            검색
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="relative" ref={solutionDropdownRef}>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션 {memoData.dbId && <span className="text-emerald-500">(DB 연동됨)</span>}</label>
-                                        <div className="flex gap-1.5 relative" ref={storeSettingsRef}>
-                                            <button
-                                                onClick={() => setIsStoreSettingsExpanded(!isStoreSettingsExpanded)}
-                                                className="p-1 text-slate-400 hover:text-indigo-500 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors shadow-sm focus:outline-none"
-                                            >
-                                                <Icon name="settings" size={12} />
-                                            </button>
+                            <div className={`bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 transition-all ${guideStep === 1 || guideStep === 2 ? 'z-[101] ring-4 ring-indigo-500/50 ring-offset-4 ring-offset-slate-50 dark:ring-offset-slate-900' : ''}`}>
 
-                                            {isStoreSettingsExpanded && (
-                                                <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 z-[60] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-2 shadow-xl w-32 animate-fade-in-up origin-top-right">
-                                                    {memoData.dbId && (
-                                                        <button onClick={() => { handleDeleteStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
-                                                            <span>매장 삭제</span>
-                                                            <Icon name="trash-2" size={12} />
-                                                        </button>
-                                                    )}
-                                                    <button onClick={() => { handleSaveStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
-                                                        <span>{memoData.dbId ? '정보 업데이트' : '새 매장 등록'}</span>
-                                                        <Icon name="save" size={12} />
+                                <div className="space-y-4 mb-6">
+                                    <div className="relative" ref={storeSuggestionRef}>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명 (DB 매칭)</label>
+                                        <input id="memo-storeName" autoComplete="off" value={memoData.storeName} onChange={e => { setMemoData({ ...memoData, storeName: e.target.value }); if (!isStoreSuggestionOpen) setIsStoreSuggestionOpen(true); }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); setIsStoreSuggestionOpen(false); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+
+                                        {isStoreSuggestionOpen && storeSuggestions.length > 0 && (
+                                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto custom-scrollbar">
+                                                {storeSuggestions.map(store => (
+                                                    <button key={store.id} onClick={() => {
+                                                        setMemoData(prev => ({
+                                                            ...prev,
+                                                            dbId: store.id,
+                                                            bizNum: prev.bizNum || formatBizNum(store.biz_num),
+                                                            storeName: store.store_name,
+                                                            usedSolution: store.used_solution || prev.usedSolution,
+                                                        }));
+                                                        setIsStoreSuggestionOpen(false);
+                                                    }} className="w-full text-left px-4 py-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors flex items-center justify-between group">
+                                                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-indigo-700 dark:group-hover:text-indigo-300">{store.store_name}</span>
+                                                        <span className="text-xs font-mono text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">{formatBizNum(store.biz_num)}</span>
                                                     </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div
-                                        onClick={() => setIsSolutionExpanded(!isSolutionExpanded)}
-                                        className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer min-h-[48px] flex flex-wrap gap-2 items-center transition-colors hover:border-blue-400 select-none"
-                                    >
-                                        {memoData.usedSolution.split(',').filter(Boolean).length === 0 ? (
-                                            <span className="text-slate-400 dark:text-slate-500 font-bold text-sm">클릭하여 솔루션 선택...</span>
-                                        ) : (
-                                            memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean).map(sol => {
-                                                const conf = PREDEFINED_SOLUTIONS.find(s => s.id === sol);
-                                                const colorClass = conf ? getSolColorClasses(conf.color, true) : 'bg-slate-500 text-white border-slate-600 shadow-slate-500/30';
-                                                return (
-                                                    <span key={sol} className={`px-2 py-0.5 text-xs font-bold rounded shadow-sm border ${colorClass} flex items-center gap-1`}>
-                                                        {sol}
-                                                        <button
-                                                            type="button"
-                                                            className="flex items-center justify-center opacity-80 hover:opacity-100 hover:text-white"
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                const newArr = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean).filter(v => v !== sol);
-                                                                setMemoData({ ...memoData, usedSolution: newArr.join(', ') });
-                                                            }}
-                                                        >
-                                                            <Icon name="x" size={12} className="cursor-pointer" />
-                                                        </button>
-                                                    </span>
-                                                );
-                                            })
+                                                ))}
+                                            </div>
                                         )}
-                                        <Icon name={isSolutionExpanded ? "chevron-up" : "chevron-down"} size={16} className="ml-auto text-slate-400" />
                                     </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호 (DB 매칭)</label>
+                                        <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                    </div>
+                                    <button onClick={() => { setIsStoreSuggestionOpen(false); handleSearchStore(); }} className="w-full mt-1 py-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2">
+                                        <Icon name="search" size={16} /> 매장 정보 DB 검색
+                                    </button>
+                                    <div className="relative" ref={solutionDropdownRef}>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션 {memoData.dbId && <span className="text-emerald-500">(DB 연동됨)</span>}</label>
+                                            <div className="flex gap-1.5 relative" ref={storeSettingsRef}>
+                                                <button
+                                                    onClick={() => setIsStoreSettingsExpanded(!isStoreSettingsExpanded)}
+                                                    className="p-1 text-slate-400 hover:text-indigo-500 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors shadow-sm focus:outline-none"
+                                                >
+                                                    <Icon name="settings" size={12} />
+                                                </button>
 
-                                    {isSolutionExpanded && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white dark:bg-slate-800 border-2 border-indigo-200 dark:border-indigo-800 rounded-2xl shadow-2xl z-20 animate-fade-in-up">
-                                            <div className="flex flex-wrap gap-2 mb-3">
-                                                {PREDEFINED_SOLUTIONS.map(sol => {
-                                                    const currentSols = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean);
-                                                    const isActive = currentSols.includes(sol.id);
-                                                    return (
-                                                        <button
-                                                            key={sol.id}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                let newArr = [...currentSols];
-                                                                if (isActive) newArr = newArr.filter(v => v !== sol.id);
-                                                                else newArr.push(sol.id);
-                                                                setMemoData({ ...memoData, usedSolution: newArr.join(', ') });
-                                                            }}
-                                                            className={`px-3 py-1.5 text-sm font-bold rounded-xl border-2 transition-all active:scale-95 ${getSolColorClasses(sol.color, isActive)}`}
-                                                        >
-                                                            {sol.id} {isActive && <Icon name="check" size={12} className="inline-block ml-1" />}
+                                                {isStoreSettingsExpanded && (
+                                                    <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 z-[60] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-2 shadow-xl w-32 animate-fade-in-up origin-top-right">
+                                                        {memoData.dbId && (
+                                                            <button onClick={() => { handleDeleteStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
+                                                                <span>매장 삭제</span>
+                                                                <Icon name="trash-2" size={12} />
+                                                            </button>
+                                                        )}
+                                                        <button onClick={() => { handleSaveStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
+                                                            <span>{memoData.dbId ? '정보 업데이트' : '새 매장 등록'}</span>
+                                                            <Icon name="save" size={12} />
                                                         </button>
-                                                    )
-                                                })}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex gap-2 relative">
-                                                <input
-                                                    type="text"
-                                                    className="flex-1 p-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-indigo-400 font-bold dark:text-slate-200"
-                                                    placeholder="직접 입력 (입력 후 Enter)..."
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            e.preventDefault();
-                                                            const val = e.target.value.trim();
-                                                            const currentSols = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean);
-                                                            if (val && !currentSols.includes(val)) {
-                                                                setMemoData({ ...memoData, usedSolution: [...currentSols, val].join(', ') });
-                                                                e.target.value = '';
+                                        </div>
+                                        <div
+                                            onClick={() => setIsSolutionExpanded(!isSolutionExpanded)}
+                                            className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer min-h-[48px] flex flex-wrap gap-2 items-center transition-colors hover:border-blue-400 select-none"
+                                        >
+                                            {memoData.usedSolution.split(',').filter(Boolean).length === 0 ? (
+                                                <span className="text-slate-400 dark:text-slate-500 font-bold text-sm">클릭하여 솔루션 선택...</span>
+                                            ) : (
+                                                memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean).map(sol => {
+                                                    const conf = PREDEFINED_SOLUTIONS.find(s => s.id === sol);
+                                                    const colorClass = conf ? getSolColorClasses(conf.color, true) : 'bg-slate-500 text-white border-slate-600 shadow-slate-500/30';
+                                                    return (
+                                                        <span key={sol} className={`px-2 py-0.5 text-xs font-bold rounded shadow-sm border ${colorClass} flex items-center gap-1`}>
+                                                            {sol}
+                                                            <button
+                                                                type="button"
+                                                                className="flex items-center justify-center opacity-80 hover:opacity-100 hover:text-white"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    const newArr = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean).filter(v => v !== sol);
+                                                                    setMemoData({ ...memoData, usedSolution: newArr.join(', ') });
+                                                                }}
+                                                            >
+                                                                <Icon name="x" size={12} className="cursor-pointer" />
+                                                            </button>
+                                                        </span>
+                                                    );
+                                                })
+                                            )}
+                                            <Icon name={isSolutionExpanded ? "chevron-up" : "chevron-down"} size={16} className="ml-auto text-slate-400" />
+                                        </div>
+
+                                        {isSolutionExpanded && (
+                                            <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white dark:bg-slate-800 border-2 border-indigo-200 dark:border-indigo-800 rounded-2xl shadow-2xl z-20 animate-fade-in-up">
+                                                <div className="flex flex-wrap gap-2 mb-3">
+                                                    {PREDEFINED_SOLUTIONS.map(sol => {
+                                                        const currentSols = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean);
+                                                        const isActive = currentSols.includes(sol.id);
+                                                        return (
+                                                            <button
+                                                                key={sol.id}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    let newArr = [...currentSols];
+                                                                    if (isActive) newArr = newArr.filter(v => v !== sol.id);
+                                                                    else newArr.push(sol.id);
+                                                                    setMemoData({ ...memoData, usedSolution: newArr.join(', ') });
+                                                                }}
+                                                                className={`px-3 py-1.5 text-sm font-bold rounded-xl border-2 transition-all active:scale-95 ${getSolColorClasses(sol.color, isActive)}`}
+                                                            >
+                                                                {sol.id} {isActive && <Icon name="check" size={12} className="inline-block ml-1" />}
+                                                            </button>
+                                                        )
+                                                    })}
+                                                </div>
+                                                <div className="flex gap-2 relative">
+                                                    <input
+                                                        type="text"
+                                                        className="flex-1 p-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-indigo-400 font-bold dark:text-slate-200"
+                                                        placeholder="직접 입력 (입력 후 Enter)..."
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                const val = e.target.value.trim();
+                                                                const currentSols = memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean);
+                                                                if (val && !currentSols.includes(val)) {
+                                                                    setMemoData({ ...memoData, usedSolution: [...currentSols, val].join(', ') });
+                                                                    e.target.value = '';
+                                                                }
                                                             }
-                                                        }
-                                                    }}
-                                                />
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">연락처</label>
-                                    <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none font-bold" placeholder="예: 010-1234-5678" maxLength={13} />
-                                </div>
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">고객 문의내용</label>
-                                        <div className={`flex gap-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-all ${guideStep === 2 ? 'relative z-[103] ring-2 ring-indigo-500/50 bg-white ring-offset-2' : ''}`}>
-                                            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
-                                                <input type="checkbox" checked={useManualMemoSearch} onChange={e => setUseManualMemoSearch(e.target.checked)} className="rounded text-blue-500 focus:ring-blue-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3.5 h-3.5" /> 수동 검색
-                                            </label>
-                                            <div className="w-px h-3 bg-slate-300 dark:bg-slate-600 my-auto"></div>
-                                            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
-                                                <input type="checkbox" checked={useAutoMemoSearch} onChange={e => setUseAutoMemoSearch(e.target.checked)} className="rounded text-emerald-500 focus:ring-emerald-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3.5 h-3.5" /> 자동 검색
-                                            </label>
-                                        </div>
+                                        )}
                                     </div>
-                                    <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className={`w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar relative ${guideStep === 1 ? 'z-[102]' : ''}`} placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
-
-                                    {guideStep === 1 && (
-                                        <div className="absolute right-full top-1/2 -translate-y-1/2 mr-6 w-72 animate-fade-in-left bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-indigo-500 p-6 z-[102] before:content-[''] before:absolute before:top-1/2 before:-right-3 before:-translate-y-1/2 before:border-8 before:border-transparent before:border-l-indigo-500">
-                                            <h3 className="text-lg font-black text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-2"><Icon name="edit-3" size={18} /> 똑똑한 자연어 인식!</h3>
-                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                                                말을 길게 적어도 `~은`, `~가`, `안돼요` 등을 무시하고 <strong>유연하게 지침을 찾아냅니다.</strong> 결과가 완전히 사라지지 않고 연관성 점수로 찾아줍니다!
-                                            </p>
-                                            <div className="mt-5 flex justify-end">
-                                                <button onClick={() => setGuideStep(2)} className="px-5 py-2 bg-indigo-600 text-white font-bold rounded-xl active:scale-95 hover:bg-indigo-700">다음 가이드 ➔</button>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">연락처</label>
+                                        <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none font-bold" placeholder="예: 010-1234-5678" maxLength={13} />
+                                    </div>
+                                    <div className="relative">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400">고객 문의내용</label>
+                                            <div className={`flex gap-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-all ${guideStep === 2 ? 'relative z-[103] ring-2 ring-indigo-500/50 bg-white ring-offset-2' : ''}`}>
+                                                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                    <input type="checkbox" checked={useManualMemoSearch} onChange={e => setUseManualMemoSearch(e.target.checked)} className="rounded text-blue-500 focus:ring-blue-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3.5 h-3.5" /> 수동 검색
+                                                </label>
+                                                <div className="w-px h-3 bg-slate-300 dark:bg-slate-600 my-auto"></div>
+                                                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                    <input type="checkbox" checked={useAutoMemoSearch} onChange={e => setUseAutoMemoSearch(e.target.checked)} className="rounded text-emerald-500 focus:ring-emerald-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3.5 h-3.5" /> 자동 검색
+                                                </label>
                                             </div>
                                         </div>
-                                    )}
+                                        <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className={`w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar relative ${guideStep === 1 ? 'z-[102]' : ''}`} placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
 
-                                    {guideStep === 2 && (
-                                        <div className="absolute right-full top-0 mr-6 w-[280px] animate-fade-in-left bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-indigo-500 p-6 z-[104] before:content-[''] before:absolute before:top-4 before:-right-3 before:border-8 before:border-transparent before:border-l-indigo-500">
-                                            <h3 className="text-lg font-black text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-2"><Icon name="toggle-right" size={18} /> 직관적인 검색 설정</h3>
-                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                                                수동 검색으로 <strong>파란색 찾기 버튼</strong>을 쓸지, 타이핑 후 1초 뒤에 <strong>알아서 찾아주게 할지</strong> 밖에서 바로바로 켤 수 있습니다!
-                                            </p>
-                                            <div className="mt-5 flex justify-between">
-                                                <button onClick={() => setGuideStep(1)} className="px-4 py-2 text-slate-500 font-bold hover:text-slate-700">이전</button>
-                                                <button onClick={() => setGuideStep(3)} className="px-5 py-2 bg-indigo-600 text-white font-bold rounded-xl active:scale-95 hover:bg-indigo-700">다음 ➔</button>
+                                        {guideStep === 1 && (
+                                            <div className="absolute right-full top-1/2 -translate-y-1/2 mr-6 w-72 animate-fade-in-left bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-indigo-500 p-6 z-[102] before:content-[''] before:absolute before:top-1/2 before:-right-3 before:-translate-y-1/2 before:border-8 before:border-transparent before:border-l-indigo-500">
+                                                <h3 className="text-lg font-black text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-2"><Icon name="edit-3" size={18} /> 똑똑한 자연어 인식!</h3>
+                                                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                    말을 길게 적어도 `~은`, `~가`, `안돼요` 등을 무시하고 <strong>유연하게 지침을 찾아냅니다.</strong> 결과가 완전히 사라지지 않고 연관성 점수로 찾아줍니다!
+                                                </p>
+                                                <div className="mt-5 flex justify-end">
+                                                    <button onClick={() => setGuideStep(2)} className="px-5 py-2 bg-indigo-600 text-white font-bold rounded-xl active:scale-95 hover:bg-indigo-700">다음 가이드 ➔</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {useManualMemoSearch && (
-                                        <button onClick={() => {
-                                            const v = memoData.issue.trim();
-                                            if (v.length > 0) {
-                                                setIsMemoSearch(true);
-                                                setSearchKeyword(v);
-                                                setActiveStep('__search__');
-                                            } else {
-                                                alert("고객 문의내용을 입력해주세요.");
-                                            }
-                                        }} className="w-full mt-2 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-md transition-all active:scale-95">
-                                            <Icon name="search" size={16} /> 작성 내용으로 지침 찾기
-                                        </button>
-                                    )}
+                                        {guideStep === 2 && (
+                                            <div className="absolute right-full top-0 mr-6 w-[280px] animate-fade-in-left bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-indigo-500 p-6 z-[104] before:content-[''] before:absolute before:top-4 before:-right-3 before:border-8 before:border-transparent before:border-l-indigo-500">
+                                                <h3 className="text-lg font-black text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-2"><Icon name="toggle-right" size={18} /> 직관적인 검색 설정</h3>
+                                                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                    수동 검색으로 <strong>파란색 찾기 버튼</strong>을 쓸지, 타이핑 후 1초 뒤에 <strong>알아서 찾아주게 할지</strong> 밖에서 바로바로 켤 수 있습니다!
+                                                </p>
+                                                <div className="mt-5 flex justify-between">
+                                                    <button onClick={() => setGuideStep(1)} className="px-4 py-2 text-slate-500 font-bold hover:text-slate-700">이전</button>
+                                                    <button onClick={() => setGuideStep(3)} className="px-5 py-2 bg-indigo-600 text-white font-bold rounded-xl active:scale-95 hover:bg-indigo-700">다음 ➔</button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {useManualMemoSearch && (
+                                            <button onClick={() => {
+                                                const v = memoData.issue.trim();
+                                                if (v.length > 0) {
+                                                    setIsMemoSearch(true);
+                                                    setSearchKeyword(v);
+                                                    setActiveStep('__search__');
+                                                } else {
+                                                    alert("고객 문의내용을 입력해주세요.");
+                                                }
+                                            }} className="w-full mt-2 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-md transition-all active:scale-95">
+                                                <Icon name="search" size={16} /> 작성 내용으로 지침 찾기
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="border-t border-slate-100 dark:border-slate-800 pt-5">
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">선택한 분류 경로</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {history.filter(h => h.tag && h.tag !== "상황 파악 완료").map((h, i) => (
-                                        <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100 flex items-center gap-1 shadow-sm"><Icon name="check" size={12} /> {h.tag}</span>
-                                    ))}
-                                    {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 dark:text-slate-500 mt-1">아직 선택된 분류가 없습니다.</span>}
+                                <div className="border-t border-slate-100 dark:border-slate-800 pt-5">
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">선택한 분류 경로</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {history.filter(h => h.tag && h.tag !== "상황 파악 완료").map((h, i) => (
+                                            <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100 flex items-center gap-1 shadow-sm"><Icon name="check" size={12} /> {h.tag}</span>
+                                        ))}
+                                        {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 dark:text-slate-500 mt-1">아직 선택된 분류가 없습니다.</span>}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <button onClick={() => {
-                                if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
-                                    setMemoData({ dbId: null, storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
-                                    setHistory([]);
-                                    setActiveStep('start');
-                                    setSearchKeyword('');
-                                    setIsMemoSearch(false);
-                                }
-                            }} className="w-full mt-6 py-3.5 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 group shadow-sm">
-                                <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
-                            </button>
+                                <button onClick={() => {
+                                    if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
+                                        setMemoData({ dbId: null, storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
+                                        setHistory([]);
+                                        setActiveStep('start');
+                                        setSearchKeyword('');
+                                        setIsMemoSearch(false);
+                                    }
+                                }} className="w-full mt-6 py-3.5 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 group shadow-sm">
+                                    <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
