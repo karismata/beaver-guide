@@ -931,18 +931,24 @@ const App = () => {
                                         <div className="flex items-center justify-between mb-1 gap-1">
                                             <div className={`flex gap-1.5 ${guideStep === 2 ? 'relative z-[103] ring-2 ring-indigo-500/50 bg-white ring-offset-2 rounded-lg' : ''}`}>
                                                 <button
-                                                    onClick={() => setUseManualMemoSearch(!useManualMemoSearch)}
+                                                    onClick={() => {
+                                                        setUseManualMemoSearch(!useManualMemoSearch);
+                                                        if (!useManualMemoSearch) setUseAutoMemoSearch(false);
+                                                    }}
                                                     title="수동으로 검색"
                                                     className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border ${useManualMemoSearch ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/50 shadow-sm' : 'bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                                                 >
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${useManualMemoSearch ? 'bg-blue-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div> 수동
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${useManualMemoSearch ? 'bg-blue-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div> 수동검색
                                                 </button>
                                                 <button
-                                                    onClick={() => setUseAutoMemoSearch(!useAutoMemoSearch)}
+                                                    onClick={() => {
+                                                        setUseAutoMemoSearch(!useAutoMemoSearch);
+                                                        if (!useAutoMemoSearch) setUseManualMemoSearch(false);
+                                                    }}
                                                     title="자동으로 추천 검색"
                                                     className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border ${useAutoMemoSearch ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50 shadow-sm' : 'bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                                                 >
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${useAutoMemoSearch ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div> 자동
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${useAutoMemoSearch ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div> 자동검색
                                                 </button>
                                             </div>
 
@@ -1105,18 +1111,6 @@ const App = () => {
                                         {history.filter(h => h.tag && h.tag !== "상황 파악 완료").length === 0 && <span className="text-xs text-slate-400 dark:text-slate-500 mt-1">아직 선택된 분류가 없습니다.</span>}
                                     </div>
                                 </div>
-
-                                <button onClick={() => {
-                                    if (confirm('진행 상황과 메모를 모두 초기화하시겠습니까?')) {
-                                        setMemoData({ dbId: null, storeName: '', bizNum: '', contact: '', usedSolution: '', issue: '' });
-                                        setHistory([]);
-                                        setActiveStep('start');
-                                        setSearchKeyword('');
-                                        setIsMemoSearch(false);
-                                    }
-                                }} className="w-full mt-6 py-3.5 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-rose-50 hover:text-rose-600 font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 group shadow-sm">
-                                    <Icon name="rotate-ccw" size={16} className="group-hover:-rotate-180 transition-transform duration-500" /> 상담 종료 / 리셋
-                                </button>
                             </div>
                         </div>
                     </div>
