@@ -881,7 +881,6 @@ const App = () => {
 
                                 <div className="space-y-4 mb-6">
                                     <div className="relative" ref={storeSuggestionRef}>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명 (DB 매칭)</label>
                                         <input id="memo-storeName" autoComplete="off" value={memoData.storeName} onChange={e => {
                                             const val = e.target.value;
                                             if (memoData.dbId) {
@@ -890,7 +889,7 @@ const App = () => {
                                                 setMemoData({ ...memoData, storeName: val });
                                             }
                                             if (!isStoreSuggestionOpen) setIsStoreSuggestionOpen(true);
-                                        }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); setIsStoreSuggestionOpen(false); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                        }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); setIsStoreSuggestionOpen(false); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="매장명 검색 (예: 비버카페 강남점)" />
 
                                         {isStoreSuggestionOpen && storeSuggestions.length > 0 && (
                                             <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto custom-scrollbar">
@@ -913,7 +912,6 @@ const App = () => {
                                         )}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호 (DB 매칭)</label>
                                         <input id="memo-bizNum" value={memoData.bizNum} onChange={e => {
                                             const val = formatBizNum(e.target.value);
                                             if (memoData.dbId) {
@@ -921,14 +919,14 @@ const App = () => {
                                             } else {
                                                 setMemoData({ ...memoData, bizNum: val });
                                             }
-                                        }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                        }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="사업자번호 (예: 123-45-67890)" maxLength={12} />
                                     </div>
                                     <button onClick={() => { setIsStoreSuggestionOpen(false); handleSearchStore(); }} className="w-full mt-1 py-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2">
                                         <Icon name="search" size={16} /> 매장 정보 DB 검색
                                     </button>
                                     <div className="relative" ref={solutionDropdownRef}>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">이용 솔루션 {memoData.dbId && <span className="text-emerald-500">(DB 연동됨)</span>}</label>
+                                        <div className="flex items-center justify-end mb-1">
+                                            {memoData.dbId && <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mr-2 px-2 py-0 border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/40 rounded-lg flex items-center shadow-sm whitespace-nowrap"><Icon name="check-circle" size={10} className="mr-1" />DB 연동됨</span>}
                                             <div className="flex gap-1.5 relative" ref={storeSettingsRef}>
                                                 <button
                                                     onClick={() => setIsStoreSettingsExpanded(!isStoreSettingsExpanded)}
@@ -958,7 +956,7 @@ const App = () => {
                                             className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer min-h-[48px] flex flex-wrap gap-2 items-center transition-colors hover:border-blue-400 select-none"
                                         >
                                             {memoData.usedSolution.split(',').filter(Boolean).length === 0 ? (
-                                                <span className="text-slate-400 dark:text-slate-500 font-bold text-sm">클릭하여 솔루션 선택...</span>
+                                                <span className="text-slate-400 dark:text-slate-500 font-bold text-sm">이용 솔루션 선택...</span>
                                             ) : (
                                                 memoData.usedSolution.split(',').map(s => s.trim()).filter(Boolean).map(sol => {
                                                     const conf = PREDEFINED_SOLUTIONS.find(s => s.id === sol);
@@ -1031,13 +1029,12 @@ const App = () => {
                                         )}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">연락처</label>
-                                        <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none font-bold" placeholder="예: 010-1234-5678" maxLength={13} />
+                                        <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none font-bold" placeholder="연락처 (예: 010-1234-5678)" maxLength={13} />
                                     </div>
                                     <div className="relative">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400">고객 문의내용</label>
+                                        <div className="flex items-center justify-end mb-2">
                                             <div className={`flex gap-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-all ${guideStep === 2 ? 'relative z-[103] ring-2 ring-indigo-500/50 bg-white ring-offset-2' : ''}`}>
+
                                                 <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
                                                     <input type="checkbox" checked={useManualMemoSearch} onChange={e => setUseManualMemoSearch(e.target.checked)} className="rounded text-blue-500 focus:ring-blue-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3.5 h-3.5" /> 수동 검색
                                                 </label>
@@ -1047,7 +1044,7 @@ const App = () => {
                                                 </label>
                                             </div>
                                         </div>
-                                        <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className={`w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar relative ${guideStep === 1 ? 'z-[102]' : ''}`} placeholder="요청 사항을 자유롭게 메모하세요..."></textarea>
+                                        <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className={`w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar relative ${guideStep === 1 ? 'z-[102]' : ''}`} placeholder="고객 문의내용을 상세히 메모하세요..."></textarea>
 
                                         {guideStep === 1 && (
                                             <div className="absolute right-full top-1/2 -translate-y-1/2 mr-6 w-72 animate-fade-in-left bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-indigo-500 p-6 z-[102] before:content-[''] before:absolute before:top-1/2 before:-right-3 before:-translate-y-1/2 before:border-8 before:border-transparent before:border-l-indigo-500">
