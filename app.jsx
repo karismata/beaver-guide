@@ -869,8 +869,15 @@ const App = () => {
 
                                 <div className="space-y-4 mb-6">
                                     <div className="relative" ref={storeSuggestionRef}>
-                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명 (DB 매칭)</label>
-                                        <input id="memo-storeName" autoComplete="off" value={memoData.storeName} onChange={e => { setMemoData({ ...memoData, storeName: e.target.value }); if (!isStoreSuggestionOpen) setIsStoreSuggestionOpen(true); }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); setIsStoreSuggestionOpen(false); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
+                                        <input id="memo-storeName" autoComplete="off" value={memoData.storeName} onChange={e => {
+                                            const val = e.target.value;
+                                            if (val.trim() === '' && memoData.dbId) {
+                                                setMemoData({ ...memoData, storeName: val, dbId: null, bizNum: '', usedSolution: '' });
+                                            } else {
+                                                setMemoData({ ...memoData, storeName: val });
+                                            }
+                                            if (!isStoreSuggestionOpen) setIsStoreSuggestionOpen(true);
+                                        }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); setIsStoreSuggestionOpen(false); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 비버카페 강남점" />
 
                                         {isStoreSuggestionOpen && storeSuggestions.length > 0 && (
                                             <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto custom-scrollbar">
@@ -894,7 +901,14 @@ const App = () => {
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">사업자번호 (DB 매칭)</label>
-                                        <input id="memo-bizNum" value={memoData.bizNum} onChange={e => setMemoData({ ...memoData, bizNum: formatBizNum(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
+                                        <input id="memo-bizNum" value={memoData.bizNum} onChange={e => {
+                                            const val = formatBizNum(e.target.value);
+                                            if (val.trim() === '' && memoData.dbId) {
+                                                setMemoData({ ...memoData, bizNum: val, dbId: null, storeName: '', usedSolution: '' });
+                                            } else {
+                                                setMemoData({ ...memoData, bizNum: val });
+                                            }
+                                        }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStore(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none" placeholder="예: 123-45-67890" maxLength={12} />
                                     </div>
                                     <button onClick={() => { setIsStoreSuggestionOpen(false); handleSearchStore(); }} className="w-full mt-1 py-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2">
                                         <Icon name="search" size={16} /> 매장 정보 DB 검색
