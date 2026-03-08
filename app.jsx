@@ -283,6 +283,9 @@ const App = () => {
             setHistory(prev => prev.slice(0, -1));
             setActiveStep(prevStep.step);
             setSearchExpandedIdx(null);
+        } else {
+            setActiveStep('start');
+            setSearchExpandedIdx(null);
         }
     };
 
@@ -909,16 +912,16 @@ const App = () => {
 
                                                 {isStoreSettingsExpanded && (
                                                     <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 z-[60] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-2 shadow-xl w-32 animate-fade-in-up origin-top-right">
+                                                        <button onClick={() => { handleSaveStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
+                                                            <span>{memoData.dbId ? '정보 업데이트' : '새 매장 등록'}</span>
+                                                            <Icon name="save" size={12} />
+                                                        </button>
                                                         {memoData.dbId && (
                                                             <button onClick={() => { handleDeleteStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
                                                                 <span>매장 삭제</span>
                                                                 <Icon name="trash-2" size={12} />
                                                             </button>
                                                         )}
-                                                        <button onClick={() => { handleSaveStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
-                                                            <span>{memoData.dbId ? '정보 업데이트' : '새 매장 등록'}</span>
-                                                            <Icon name="save" size={12} />
-                                                        </button>
                                                     </div>
                                                 )}
                                             </div>
