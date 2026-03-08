@@ -152,7 +152,14 @@ const App = () => {
             // Only search if active element is the input itself (prevent search loop on selection)
             if (document.activeElement?.id !== 'memo-storeName') return;
             try {
-                const { data, error } = await supabase.from('store_directory').select('*').ilike('store_name', `%${text}%`).limit(10);
+                const terms = text.split(' ').filter(Boolean);
+                let query = supabase.from('store_directory').select('*');
+                terms.forEach(term => {
+                    query = query.ilike('store_name', `%${term}%`);
+                });
+                query = query.limit(10);
+
+                const { data, error } = await query;
                 if (!error && data) {
                     setStoreSuggestions(data);
                     setIsStoreSuggestionOpen(data.length > 0);
@@ -411,12 +418,17 @@ const App = () => {
 
         try {
             let query = supabase.from('store_directory').select('*');
-            if (bn.length >= 10 && sn) {
-                query = query.or(`biz_num.eq.${bn},store_name.ilike.%${sn}%`);
+            const snTerms = sn.split(' ').filter(Boolean);
+            const snCondition = snTerms.length > 0 ? (snTerms.length === 1 ? `store_name.ilike.%${snTerms[0]}%` : `and(${snTerms.map(t => `store_name.ilike.%${t}%`).join(',')})`) : '';
+
+            if (bn.length >= 10 && snTerms.length > 0) {
+                query = query.or(`biz_num.eq.${bn},${snCondition}`);
             } else if (bn.length >= 10) {
                 query = query.eq('biz_num', bn);
-            } else if (sn) {
-                query = query.ilike('store_name', `%${sn}%`);
+            } else if (snTerms.length > 0) {
+                snTerms.forEach(t => {
+                    query = query.ilike('store_name', `%${t}%`);
+                });
             }
 
             const { data, error } = await query;
@@ -869,6 +881,7 @@ const App = () => {
 
                                 <div className="space-y-4 mb-6">
                                     <div className="relative" ref={storeSuggestionRef}>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">매장명 (DB 매칭)</label>
                                         <input id="memo-storeName" autoComplete="off" value={memoData.storeName} onChange={e => {
                                             const val = e.target.value;
                                             if (memoData.dbId) {
