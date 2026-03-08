@@ -925,30 +925,42 @@ const App = () => {
                                         <Icon name="search" size={16} /> 매장 정보 DB 검색
                                     </button>
                                     <div className="relative" ref={solutionDropdownRef}>
-                                        <div className="flex items-center justify-end mb-1">
-                                            {memoData.dbId && <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mr-2 px-2 py-0 border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/40 rounded-lg flex items-center shadow-sm whitespace-nowrap"><Icon name="check-circle" size={10} className="mr-1" />DB 연동됨</span>}
-                                            <div className="flex gap-1.5 relative" ref={storeSettingsRef}>
-                                                <button
-                                                    onClick={() => setIsStoreSettingsExpanded(!isStoreSettingsExpanded)}
-                                                    className="p-1 text-slate-400 hover:text-indigo-500 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors shadow-sm focus:outline-none"
-                                                >
-                                                    <Icon name="settings" size={12} />
-                                                </button>
+                                        <div className="flex items-center justify-between mb-1 gap-1">
+                                            <div className={`flex flex-1 justify-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg transition-all ${guideStep === 2 ? 'relative z-[103] ring-2 ring-indigo-500/50 bg-white ring-offset-2' : ''}`}>
+                                                <label className="flex items-center gap-1 cursor-pointer text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                                                    <input type="checkbox" checked={useManualMemoSearch} onChange={e => setUseManualMemoSearch(e.target.checked)} className="rounded text-blue-500 focus:ring-blue-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3 h-3" /> 수동검색
+                                                </label>
+                                                <div className="w-px h-3 bg-slate-300 dark:bg-slate-600 my-auto"></div>
+                                                <label className="flex items-center gap-1 cursor-pointer text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                                                    <input type="checkbox" checked={useAutoMemoSearch} onChange={e => setUseAutoMemoSearch(e.target.checked)} className="rounded text-emerald-500 focus:ring-emerald-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3 h-3" /> 자동검색
+                                                </label>
+                                            </div>
 
-                                                {isStoreSettingsExpanded && (
-                                                    <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 z-[60] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-2 shadow-xl w-32 animate-fade-in-up origin-top-right">
-                                                        <button onClick={() => { handleSaveStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
-                                                            <span>{memoData.dbId ? '정보 업데이트' : '새 매장 등록'}</span>
-                                                            <Icon name="save" size={12} />
-                                                        </button>
-                                                        {memoData.dbId && (
-                                                            <button onClick={() => { handleDeleteStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
-                                                                <span>매장 삭제</span>
-                                                                <Icon name="trash-2" size={12} />
+                                            <div className="flex items-center gap-1 justify-end shrink-0">
+                                                {memoData.dbId && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/40 rounded flex items-center shadow-sm whitespace-nowrap"><Icon name="check-circle" size={10} className="mr-0.5" />DB 연동</span>}
+                                                <div className="relative" ref={storeSettingsRef}>
+                                                    <button
+                                                        onClick={() => setIsStoreSettingsExpanded(!isStoreSettingsExpanded)}
+                                                        className="p-1 px-1.5 text-slate-400 hover:text-indigo-500 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors shadow-sm focus:outline-none flex items-center justify-center shrink-0"
+                                                    >
+                                                        <Icon name="settings" size={12} />
+                                                    </button>
+
+                                                    {isStoreSettingsExpanded && (
+                                                        <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 z-[60] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-2 shadow-xl w-32 animate-fade-in-up origin-top-right">
+                                                            <button onClick={() => { handleSaveStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
+                                                                <span>{memoData.dbId ? '정보 업데이트' : '새 매장 등록'}</span>
+                                                                <Icon name="save" size={12} />
                                                             </button>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                            {memoData.dbId && (
+                                                                <button onClick={() => { handleDeleteStore(); setIsStoreSettingsExpanded(false); }} className="w-full text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 px-2 py-1.5 rounded transition-colors focus:outline-none flex flex-row items-center justify-between">
+                                                                    <span>매장 삭제</span>
+                                                                    <Icon name="trash-2" size={12} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <div
@@ -1032,18 +1044,6 @@ const App = () => {
                                         <input id="memo-contact" value={memoData.contact} onChange={e => setMemoData({ ...memoData, contact: formatContact(e.target.value) })} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('memo-issue')?.focus(); } }} className="w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none font-bold" placeholder="연락처 (예: 010-1234-5678)" maxLength={13} />
                                     </div>
                                     <div className="relative">
-                                        <div className="flex items-center justify-end mb-2">
-                                            <div className={`flex gap-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-all ${guideStep === 2 ? 'relative z-[103] ring-2 ring-indigo-500/50 bg-white ring-offset-2' : ''}`}>
-
-                                                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
-                                                    <input type="checkbox" checked={useManualMemoSearch} onChange={e => setUseManualMemoSearch(e.target.checked)} className="rounded text-blue-500 focus:ring-blue-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3.5 h-3.5" /> 수동 검색
-                                                </label>
-                                                <div className="w-px h-3 bg-slate-300 dark:bg-slate-600 my-auto"></div>
-                                                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
-                                                    <input type="checkbox" checked={useAutoMemoSearch} onChange={e => setUseAutoMemoSearch(e.target.checked)} className="rounded text-emerald-500 focus:ring-emerald-500 bg-white border-slate-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer w-3.5 h-3.5" /> 자동 검색
-                                                </label>
-                                            </div>
-                                        </div>
                                         <textarea id="memo-issue" value={memoData.issue} onChange={e => setMemoData({ ...memoData, issue: e.target.value })} className={`w-full p-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl h-48 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors focus:border-blue-400 focus:bg-white dark:bg-slate-800 focus:outline-none custom-scrollbar relative ${guideStep === 1 ? 'z-[102]' : ''}`} placeholder="고객 문의내용을 상세히 메모하세요..."></textarea>
 
                                         {guideStep === 1 && (
