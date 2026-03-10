@@ -399,7 +399,8 @@ const App = () => {
     };
 
     const handleCopyMemo = () => {
-        const copyText = `매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n이용솔루션: ${memoData.usedSolution || '미입력'}\n문의내용: ${memoData.issue || '미입력'}`;
+        const solutionText = memoData.usedSolution ? `${memoData.usedSolution}\n` : '';
+        const copyText = `${solutionText}매장명: ${memoData.storeName || '미입력'}\n사업자번호: ${memoData.bizNum || '미입력'}\n연락처: ${memoData.contact || '미입력'}\n문의내용: ${memoData.issue || '미입력'}`;
         navigator.clipboard.writeText(copyText).catch(err => console.error('복사 실패:', err));
     };
 
