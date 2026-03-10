@@ -252,7 +252,9 @@ const App = () => {
                             icon: "book-open",
                             type: "info",
                             list: [(row['내용'] || '').replace(/\/n/g, '\n').replace(/\\n/g, '\n').replace(/~n/g, '\n').replace(/NL/gi, '\n').replace(/␤/g, '\n')],
-                            image: row['이미지들']
+                            image: row['이미지들'],
+                            createdAt: row['created_at'],
+                            updatedAt: row['updated_at']
                         };
                     });
                 }
@@ -650,30 +652,46 @@ const App = () => {
                                         return <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-sm"><Icon name="search-x" size={48} className="mx-auto text-slate-300 dark:text-slate-400 mb-4" /><p className="text-slate-500 dark:text-slate-400 font-bold text-lg">일치하는 결과가 없습니다.</p></div>;
                                     }
 
-                                    return uniqueMatches.map((m, i) => (
-                                        <div key={i} className="bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <span className={`p-2 rounded-xl transition-colors ${m.type === 'success' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' : m.type === 'info' ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100'}`}>
-                                                    <Icon name={m.icon} size={20} />
-                                                </span>
-                                                <span className="font-black text-slate-800 dark:text-slate-100 text-xl group-hover:text-blue-600 transition-colors">{m.title}</span>
-                                            </div>
-                                            {m.item ? (
-                                                <div className="pl-14">
-                                                    <p className="text-slate-600 dark:text-slate-300 font-medium whitespace-pre-line leading-relaxed line-clamp-4">
-                                                        {m.item}
-                                                    </p>
-                                                    {m.image && m.matchIdx === 0 && (
-                                                        <div className="mt-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                                                            <img src={m.image} className="w-full max-h-48 object-cover bg-slate-50 dark:bg-slate-900 dark:bg-slate-700" alt="첨부 이미지" />
-                                                        </div>
-                                                    )}
+                                    return uniqueMatches.map((m, i) => {
+                                        const c = contents[m.contentKey];
+                                        const formatDate = (isoStr) => {
+                                            if (!isoStr) return '';
+                                            const d = new Date(isoStr);
+                                            if (isNaN(d.valueOf())) return '';
+                                            const pad = n => n.toString().padStart(2, '0');
+                                            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                                        };
+                                        return (
+                                            <div key={i} className="bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl p-6 hover:border-blue-300 transition-all text-left cursor-pointer group" onClick={() => { navigateTo(m.contentKey, `검색결과: ${m.title}`, m.matchIdx !== undefined ? m.matchIdx : 0); }}>
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <span className={`p-2 rounded-xl transition-colors ${m.type === 'success' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' : m.type === 'info' ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100' : 'bg-rose-50 text-rose-600 group-hover:bg-rose-100'}`}>
+                                                        <Icon name={m.icon} size={20} />
+                                                    </span>
+                                                    <span className="font-black text-slate-800 dark:text-slate-100 text-xl group-hover:text-blue-600 transition-colors">{m.title}</span>
                                                 </div>
-                                            ) : (
-                                                <p className="pl-14 text-slate-400 dark:text-slate-500 text-sm font-bold italic">문서 제목이 검색어와 일치합니다.</p>
-                                            )}
-                                        </div>
-                                    ));
+                                                {m.item ? (
+                                                    <div className="pl-14">
+                                                        <p className="text-slate-600 dark:text-slate-300 font-medium whitespace-pre-line leading-relaxed line-clamp-4">
+                                                            {m.item}
+                                                        </p>
+                                                        {m.image && m.matchIdx === 0 && (
+                                                            <div className="mt-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                                                                <img src={m.image} className="w-full max-h-48 object-cover bg-slate-50 dark:bg-slate-900 dark:bg-slate-700" alt="첨부 이미지" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <p className="pl-14 text-slate-400 dark:text-slate-500 text-sm font-bold italic">문서 제목이 검색어와 일치합니다.</p>
+                                                )}
+                                                {c && c.isInfo && (c.createdAt || c.updatedAt) && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center gap-3 text-xs font-medium text-slate-400 dark:text-slate-500 pl-14 tracking-wide">
+                                                        {c.createdAt && <span>생성: {formatDate(c.createdAt)}</span>}
+                                                        {c.updatedAt && c.updatedAt !== c.createdAt && <span>수정: {formatDate(c.updatedAt)}</span>}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    });
                                 })()}
                             </div>
                         </div>
