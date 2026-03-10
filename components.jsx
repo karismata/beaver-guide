@@ -142,6 +142,14 @@ const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewIt
         return data.list.filter(item => matchSearch(item, searchTerm));
     }, [data.list, searchTerm]);
 
+    const formatDate = (isoStr) => {
+        if (!isoStr) return '';
+        const d = new Date(isoStr);
+        if (isNaN(d.valueOf())) return '';
+        const pad = n => n.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
     const toggleAccordion = (idx) => {
         if (editingIdx !== null) return;
         setExpandedIdx(expandedIdx === idx ? null : idx);
@@ -250,6 +258,12 @@ const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewIt
                                             {data.image && originalIdx === 0 && (
                                                 <div className="mt-2 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700">
                                                     <img src={data.image} alt="첨부 이미지" className="w-full h-auto object-contain bg-slate-50 dark:bg-slate-900 dark:bg-slate-700" />
+                                                </div>
+                                            )}
+                                            {data.isInfo && (data.createdAt || data.updatedAt) && originalIdx === 0 && (
+                                                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                                                    {data.createdAt && <span>생성: {formatDate(data.createdAt)}</span>}
+                                                    {data.updatedAt && data.updatedAt !== data.createdAt && <span>수정: {formatDate(data.updatedAt)}</span>}
                                                 </div>
                                             )}
                                         </div>
