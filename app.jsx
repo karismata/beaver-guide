@@ -904,8 +904,17 @@ const App = () => {
                                                         }));
                                                         setIsStoreSuggestionOpen(false);
                                                     }} className="w-full text-left px-4 py-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors flex items-center justify-between group">
-                                                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-indigo-700 dark:group-hover:text-indigo-300">{store.store_name}</span>
-                                                        <span className="text-xs font-mono text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">{formatBizNum(store.biz_num)}</span>
+                                                        <div className="flex flex-col gap-1 mt-0.5">
+                                                            <span className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-indigo-700 dark:group-hover:text-indigo-300">{store.store_name}</span>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {store.used_solution ? store.used_solution.split(',').map(s => s.trim()).filter(Boolean).map(sol => {
+                                                                    const conf = PREDEFINED_SOLUTIONS.find(p => p.id === sol);
+                                                                    const colorClass = conf ? getSolColorClasses(conf.color, true) : 'bg-slate-500 text-white border-slate-600 shadow-slate-500/30';
+                                                                    return <span key={sol} className={`px-1.5 py-0.5 text-[10px] font-bold rounded border ${colorClass}`}>{sol}</span>;
+                                                                }) : <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded">솔루션 없음</span>}
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-xs font-mono text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded whitespace-nowrap ml-2 mt-auto mb-auto">{formatBizNum(store.biz_num)}</span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -1229,9 +1238,13 @@ const App = () => {
                                     className="w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all active:scale-[0.98] group flex justify-between items-center"
                                 >
                                     <div>
-                                        <div className="font-black text-lg text-slate-800 dark:text-slate-100 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{store.store_name}</div>
-                                        <div className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 focus:outline-none">
-                                            <Icon name="tag" size={14} /> {store.used_solution || '솔루션 미기재'}
+                                        <div className="font-black text-lg text-slate-800 dark:text-slate-100 mb-1.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{store.store_name}</div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {store.used_solution ? store.used_solution.split(',').map(s => s.trim()).filter(Boolean).map(sol => {
+                                                const conf = PREDEFINED_SOLUTIONS.find(p => p.id === sol);
+                                                const colorClass = conf ? getSolColorClasses(conf.color, true) : 'bg-slate-500 text-white border-slate-600 shadow-slate-500/30';
+                                                return <span key={sol} className={`px-2 py-0.5 text-xs font-bold rounded border ${colorClass}`}>{sol}</span>;
+                                            }) : <span className="text-xs text-slate-400 dark:text-slate-500 font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded">솔루션 미기재</span>}
                                         </div>
                                     </div>
                                     <Icon name="chevron-right" size={20} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
