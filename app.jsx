@@ -239,7 +239,7 @@ const App = () => {
                 const dbSteps = {}; const dbContents = {};
                 data.forEach(row => {
                     if (row.type === 'step') dbSteps[row.id] = row.data;
-                    if (row.type === 'content') dbContents[row.id] = row.data;
+                    if (row.type === 'content') dbContents[row.id] = { ...row.data, createdAt: row.created_at, updatedAt: row.updated_at };
                 });
 
                 // 한서치 info 데이터를 contents에 병합
@@ -683,10 +683,10 @@ const App = () => {
                                                 ) : (
                                                     <p className="pl-14 text-slate-400 dark:text-slate-500 text-sm font-bold italic">문서 제목이 검색어와 일치합니다.</p>
                                                 )}
-                                                {c && c.isInfo && (c.createdAt || c.updatedAt) && (
-                                                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center gap-3 text-xs font-medium text-slate-400 dark:text-slate-500 pl-14 tracking-wide">
+                                                {c && (c.createdAt || c.updatedAt) && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-400 dark:text-slate-500 pl-14 tracking-wide">
                                                         {c.createdAt && <span>생성: {formatDate(c.createdAt)}</span>}
-                                                        {c.updatedAt && c.updatedAt !== c.createdAt && <span>수정: {formatDate(c.updatedAt)}</span>}
+                                                        {c.updatedAt && <span>수정: {formatDate(c.updatedAt)}</span>}
                                                     </div>
                                                 )}
                                             </div>

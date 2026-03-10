@@ -260,10 +260,10 @@ const ResultCard = ({ stepKey, data, categories, memoPosition, newItem, setNewIt
                                                     <img src={data.image} alt="첨부 이미지" className="w-full h-auto object-contain bg-slate-50 dark:bg-slate-900 dark:bg-slate-700" />
                                                 </div>
                                             )}
-                                            {data.isInfo && (data.createdAt || data.updatedAt) && originalIdx === 0 && (
+                                            {(data.createdAt || data.updatedAt) && originalIdx === 0 && (
                                                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-400 dark:text-slate-500">
                                                     {data.createdAt && <span>생성: {formatDate(data.createdAt)}</span>}
-                                                    {data.updatedAt && data.updatedAt !== data.createdAt && <span>수정: {formatDate(data.updatedAt)}</span>}
+                                                    {data.updatedAt && <span>수정: {formatDate(data.updatedAt)}</span>}
                                                 </div>
                                             )}
                                         </div>
